@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-	Math5A_Triangulation w;
+	Math5A_Bezier w;
 	w.show();
 	return a.exec();
 }

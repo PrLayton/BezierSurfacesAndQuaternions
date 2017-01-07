@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>math5a_bezierForm</class>
- <widget class="QMainWindow" name="math5a_bezierForm">
+ <class>triangulationForm</class>
+ <widget class="QMainWindow" name="triangulationForm">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Math5A ESGI - Bézier 3D</string>
+   <string>Math5A_Triangulation</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -62,9 +62,6 @@
           <property name="text">
            <string>Marche de Jarvis</string>
           </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
          </widget>
         </item>
         <item>
@@ -100,7 +97,7 @@
            <string>Rien</string>
           </property>
           <property name="checked">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -115,16 +112,119 @@
       </widget>
      </item>
      <item>
+      <widget class="QGroupBox" name="groupTriangulation">
+       <property name="title">
+        <string>Triangulation</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <widget class="QRadioButton" name="rbTriSimple">
+          <property name="text">
+           <string>Triangulation quelconque</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="laTimeTriSimple">
+          <property name="text">
+           <string>0 us</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="rbFlipping">
+          <property name="text">
+           <string>Flipping</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="laTimeFlipping">
+          <property name="text">
+           <string>0 us</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="rbTriDelaunay">
+          <property name="text">
+           <string>Triangluation Delaunay</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="laTimeDelaunay">
+          <property name="text">
+           <string>0 us</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="rbNoneTri">
+          <property name="text">
+           <string>Rien</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+       <zorder>rbTriSimple</zorder>
+       <zorder>rbNoneTri</zorder>
+       <zorder>rbTriDelaunay</zorder>
+       <zorder>rbFlipping</zorder>
+       <zorder>laTimeTriSimple</zorder>
+       <zorder>laTimeFlipping</zorder>
+       <zorder>laTimeDelaunay</zorder>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupVoronoi">
+       <property name="title">
+        <string>Diagramme de Voronoï</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <widget class="QCheckBox" name="cbVoronoi">
+          <property name="text">
+           <string>Voronoi</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbMovePoint">
+          <property name="text">
+           <string>Move points</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="bResetData">
        <property name="text">
-        <string>Réinitialiser les données</string>
+        <string>Reset Data</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="bResetCam">
        <property name="text">
-        <string>Réinitialiser le caméra</string>
+        <string>Reset Camera</string>
        </property>
        <property name="checkable">
         <bool>false</bool>
