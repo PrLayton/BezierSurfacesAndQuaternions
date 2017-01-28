@@ -36,6 +36,7 @@ void GLWidget::initializeGL()
 	glDepthFunc(GL_LEQUAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	range = 100.0;
+	generateControlPoints();
 }
 
 // Redimensionner de la scène pour adapter à la fenêtre principale
@@ -93,16 +94,16 @@ void GLWidget::drawScene()
 	QElapsedTimer timer;
 	int time;
 	// Affichage de l'envelope convexe
-	vector<Point> envelop;
+	vector<QVector3D> envelop;
 	switch (modeEnvelop)
 	{
 	case 1:	// Enveloppe par méthode marche de Jarvis
-		timer.start();
+		/*timer.start();
 		envelop = EnvelopeJarvis(points);
 		time = timer.nsecsElapsed() / 1000;
 		labelTimer[0] = QString::number(time) + " us";
 		emit labelChanged(0);
-		drawPoly(envelop, QVector3D(150.0f, 150.0f, 150.0f), 3);
+		drawPoly(envelop, QVector3D(150.0f, 150.0f, 150.0f), 3);*/
 		break;
 	case 2:	// Enveloppe par méthode Graham-Scan
 		break;
@@ -110,6 +111,83 @@ void GLWidget::drawScene()
 		break;
 	}
 	drawPoints(points, QVector3D(255.0f, 255.0f, 255.0f));
+	drawPoints(ptsSurf, QVector3D(0, 255.0f, 0));
+	drawSurfaceBezier();
+}
+
+void GLWidget::generateControlPoints()
+{
+	if (precision < 1 || degU < 1 || degV < 1)
+		return;
+	bezier.clear();
+	points.clear();
+	bezier.resize(degU);
+	for (int i = 0; i < degU; i++)
+	{
+		bezier[i].resize(degV);
+		for (int j = 0; j < degV; j++)
+		{
+			int x = randomGeneration(-130, 130);
+			int y = randomGeneration(-90, 90);
+			int z = randomGeneration(-50, 50);
+			bezier[i][j] = QVector3D(x, y, z);
+			points.push_back(bezier[i][j]);
+		}
+	}
+	calculateSurfaceBezier();
+}
+
+void GLWidget::calculateSurfaceBezier()
+{
+	if (precision < 1 || degU < 1 || degV < 1)
+		return;
+	surfBezier.clear();
+	ptsSurf.clear();
+	surfBezier = calcSurfaceBezier(bezier, precision);
+	for (int i = 0; i < precision; i++)
+		for (int j = 0; j < precision; j++)
+			ptsSurf.push_back(surfBezier[i][j]);
+}
+
+void GLWidget::drawSurfaceBezier()
+{
+	if (precision < 1 || degU < 1 || degV < 1)
+		return;
+	bool color = false;
+	float black[] = { 0.0, 0.0, 0.0 };
+	float white[] = { 1.0, 1.0, 1.0 };
+	float red[] = { 1.0, 0.0, 0.0 };
+	glColor3fv(red);
+	for (int i = 0; i < precision - 1; i++)
+	{
+		for (int j = 0; j < precision-1; j++)
+		{
+			glBegin(GL_LINE_STRIP);
+			glVertex3f(surfBezier[i][j].x(), surfBezier[i][j].y(), surfBezier[i][j].z());
+			glVertex3f(surfBezier[i + 1][j].x(), surfBezier[i + 1][j].y(), surfBezier[i + 1][j].z());
+			glVertex3f(surfBezier[i + 1][j + 1].x(), surfBezier[i + 1][j + 1].y(), surfBezier[i + 1][j + 1].z());
+			glVertex3f(surfBezier[i][j].x(), surfBezier[i][j].y(), surfBezier[i][j].z());
+			glVertex3f(surfBezier[i + 1][j + 1].x(), surfBezier[i + 1][j + 1].y(), surfBezier[i + 1][j + 1].z());
+			glVertex3f(surfBezier[i][j + 1].x(), surfBezier[i][j + 1].y(), surfBezier[i][j + 1].z());
+			glEnd();
+		}
+		/*glBegin(GL_TRIANGLE_STRIP);
+		for (int vi = 0; vi < precision; vi++) 
+		{
+			if (color)
+				glColor3fv(white);
+			else
+				glColor3fv(black);
+			QVector3D p1 = surfBezier[ui][vi];
+			QVector3D p2 = surfBezier[ui + 1][vi];
+			glVertex3f(p1.x(), p1.y(), p1.z());
+			glVertex3f(p2.x(), p2.y(), p2.z());
+			color = !color;
+		}
+		if (precision % 2 == 1) 
+			color = !color;
+		glEnd();*/
+	}
 }
 
 // Conversion de coordonnées d'écran à coordonnées de la scène OPENGL
@@ -128,7 +206,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 	{
 		if (pointSelected == -1) 
 		{  
-			points.push_back(Point(convertXY(event->pos().x(), event->pos().y())));
+			points.push_back(convertXY(event->pos().x(), event->pos().y()));
 			needUpdate = true;
 		}
 	}
@@ -151,7 +229,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	{
 		if (pointSelected >= 0)
 		{
-			points[pointSelected] = Point(convertXY(event->pos().x(), event->pos().y()));
+			points[pointSelected] = convertXY(event->pos().x(), event->pos().y());
 			needUpdate = true;
 		}
 	}
@@ -172,7 +250,7 @@ int GLWidget::findNearestPoint(QPoint p)
 	int nbPoints = points.size();
 	for (int i = 0; i < nbPoints; i++)
 	{
-		QVector3D d = convertXY(p.x(), p.y()) - QVector3D(points[i].coord.x(), points[i].coord.y(), 0);
+		QVector3D d = convertXY(p.x(), p.y()) - QVector3D(points[i].x(), points[i].y(), 0);
 		if (sqrt(pow(d.x(), 2) + pow(d.y(), 2) <= POINT_SIZE*4))
 			return i;
 	}
@@ -222,7 +300,7 @@ void GLWidget::drawGridandAxes()
 }
 
 // Dessiner des côtés à partir des couples de points
-void  GLWidget::drawLinesFromPoints(vector<Point> pts)
+void  GLWidget::drawLinesFromPoints(vector<QVector3D> pts)
 {
 	int nbSides = pts.size();
 	if (nbSides == 0)
@@ -235,15 +313,15 @@ void  GLWidget::drawLinesFromPoints(vector<Point> pts)
 	glBegin(GL_LINES);
 	for (int i = 0; i < nbSides; i+=2)
 	{
-		glVertex3f(pts[i].coord.x(), pts[i].coord.y(), pts[i].coord.z());
-		glVertex3f(pts[i + 1].coord.x(), pts[i + 1].coord.y(), pts[i + 1].coord.z());
+		glVertex3f(pts[i].x(), pts[i].y(), pts[i].z());
+		glVertex3f(pts[i + 1].x(), pts[i + 1].y(), pts[i + 1].z());
 	}
 	glEnd();
 	glPopAttrib();
 }
 
 // Dessiner d'un polygone à partir d'un ensemble des points
-void GLWidget::drawPoly(vector<Point> pts, QVector3D color, float width)
+void GLWidget::drawPoly(vector<QVector3D> pts, QVector3D color, float width)
 {
 	int nbPoints = pts.size();
 	if (nbPoints == 0)
@@ -252,12 +330,12 @@ void GLWidget::drawPoly(vector<Point> pts, QVector3D color, float width)
 	glLineWidth(width);
 	glBegin(GL_LINE_LOOP);
 	for (int i = 0; i < nbPoints; i++)
-		glVertex3f(pts[i].coord.x(), pts[i].coord.y(), pts[i].coord.z());
+		glVertex3f(pts[i].x(), pts[i].y(), pts[i].z());
 	glEnd();
 }
 
 // Dessiner des points
-void GLWidget::drawPoints(vector<Point> points, QVector3D color)
+void GLWidget::drawPoints(vector<QVector3D> points, QVector3D color)
 {
 	int nbPoints = points.size();
 	if (nbPoints == 0)
@@ -266,7 +344,7 @@ void GLWidget::drawPoints(vector<Point> points, QVector3D color)
 	glPointSize(POINT_SIZE);
 	glBegin(GL_POINTS);
 	for (int i = 0; i < nbPoints; i++)
-		glVertex3f(points[i].coord.x(), points[i].coord.y(), points[i].coord.z());
+		glVertex3f(points[i].x(), points[i].y(), points[i].z());
 	glEnd();
 }
 
@@ -313,6 +391,5 @@ void GLWidget::resetCamera()
 void GLWidget::resetData()
 {
 	points.clear();
-	resetGlobalID();
 	needUpdate = true;
 }

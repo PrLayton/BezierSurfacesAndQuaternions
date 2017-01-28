@@ -7,8 +7,6 @@
 #include <QVector2D>
 #include <vector>
 #include <math.h>
-#include <time.h>
-#include "GL/glu.h"
 #include "AlgoMath.h"
 
 using namespace std;
@@ -37,6 +35,9 @@ protected:
 
 public slots:
 	void timeOutSlot();
+	void setDegreeU(int m) { degU = m; generateControlPoints(); }
+	void setDegreeV(int n) { degV = n; generateControlPoints(); }
+	void setPrecision(int p) { precision = p; calculateSurfaceBezier(); }
 	// Fonctions pour mettre à jour les paramètres de l'UI
 	void setVoronoi(int f) { showVoronoi = f == 0 ? false : true; }
 	void setMovePoint(int m) { movePoint = m == 0 ? false : true; }
@@ -61,15 +62,21 @@ private:
 	// Dessiner la grille et les axes
 	void drawGridandAxes();
 	// Dessiner des points
-	void drawPoints(vector<Point> points, QVector3D color);
+	void drawPoints(vector<QVector3D> points, QVector3D color);
 	// Dessiner des côtés à partir des couples de points
-	void drawLinesFromPoints(vector<Point> pts);
+	void drawLinesFromPoints(vector<QVector3D> pts);
 	// Dessiner d'un polygone à partir d'un ensemble des points
-	void drawPoly(vector<Point> pts, QVector3D color, float width);
+	void drawPoly(vector<QVector3D> pts, QVector3D color, float width);
 	
-	QPoint mousePos;
-	QTimer *t_Timer;
+	// BEZIER
+	void generateControlPoints();
+	void calculateSurfaceBezier();
+	void drawSurfaceBezier();
 
+	vector<vector<QVector3D>> bezier, surfBezier;
+	int degU = 1, degV = 1;
+	int precision = 5;
+	
 	// Les paramètres de caméra OPENGL
 	float m_theta;	// Rotation x-axis
 	float m_phi;	// Rotation  y-axis
@@ -81,9 +88,11 @@ private:
 	QPoint tmpRotValue;
 	int screenW;
 	int screenH;
+	QPoint mousePos;
+	QTimer *t_Timer;
 
 	// Les données
-	vector<Point> points;
+	vector<QVector3D> points, ptsSurf;
 	int pointSelected = -1;
 
 	// Les paramètres de l'UI

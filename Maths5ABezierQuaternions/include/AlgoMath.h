@@ -2,26 +2,13 @@
 
 #include <vector>
 #include <algorithm>
+#include <random>
 
 using namespace std;
 
-static int globalId = 0;
+vector<QVector3D> calculateCasteljau(vector<QVector3D> poly, int nbPas);
+QVector3D getCasteljauPoint(vector<QVector3D> poly, double t);
+vector<vector<QVector3D>> calcSurfaceBezier(vector<vector<QVector3D>> pts, int precision);
+int randomGeneration(int min, int max);
 
-struct Point
-{
-	int id;
-	QVector3D coord;
-	Point() 
-	{
-		id = -1;
-	};
-
-	Point(QVector3D pt)
-	{
-		coord = pt;
-		id = globalId++;
-	}
-};
-
-void resetGlobalID();
-vector<Point> EnvelopeJarvis(vector<Point> pts);
+vector<QVector3D> EnvelopeJarvis(vector<QVector3D> pts);

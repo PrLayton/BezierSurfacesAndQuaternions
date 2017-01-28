@@ -31,11 +31,11 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	connect(ui.bResetData, SIGNAL(clicked()), glScene, SLOT(resetData()));
 	connect(ui.bResetCam, SIGNAL(clicked()), glScene, SLOT(resetCamera()));
 	connect(ui.bQuit, SIGNAL(clicked()), this, SLOT(quit()));
-}
 
-Math5A_Bezier::~Math5A_Bezier()
-{
-	delete[] glScene;
+	// Bézier
+	connect(ui.spinHori, SIGNAL(valueChanged(int)), glScene, SLOT(setDegreeU(int)));
+	connect(ui.spinVerti, SIGNAL(valueChanged(int)), glScene, SLOT(setDegreeV(int)));
+	connect(ui.spinPrecision, SIGNAL(valueChanged(int)), glScene, SLOT(setPrecision(int)));
 }
 
 // Mettre à jour les labels des Timers
@@ -70,4 +70,9 @@ void Math5A_Bezier::modeEnvelop()
 void Math5A_Bezier::quit()
 {
 	qApp->quit();
+}
+
+Math5A_Bezier::~Math5A_Bezier()
+{
+	delete[] glScene;
 }
