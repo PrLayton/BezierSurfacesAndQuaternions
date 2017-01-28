@@ -3,6 +3,7 @@
 #include <QGLWidget>
 #include <QDebug>
 #include <QKeyEvent>
+#include <QWheelEvent>
 
 #include <QVector2D>
 #include <vector>
@@ -31,6 +32,7 @@ protected:
 	void mousePressEvent(QMouseEvent *event);
 	void mouseMoveEvent(QMouseEvent *event);
 	void mouseReleaseEvent(QMouseEvent *event);
+	void wheelEvent(QWheelEvent * event);
 	virtual void keyPressEvent(QKeyEvent* e);
 
 public slots:
@@ -80,6 +82,8 @@ private:
 	// Les paramètres de caméra OPENGL
 	float m_theta;	// Rotation x-axis
 	float m_phi;	// Rotation  y-axis
+	float m_scale;
+	float m_incrementScale;
 	double range;
 	float m_aspectRatio;
 	bool mouseLook;
@@ -90,6 +94,7 @@ private:
 	int screenH;
 	QPoint mousePos;
 	QTimer *t_Timer;
+	int depthBetweenPoints;
 
 	// Les données
 	vector<QVector3D> points, ptsSurf;

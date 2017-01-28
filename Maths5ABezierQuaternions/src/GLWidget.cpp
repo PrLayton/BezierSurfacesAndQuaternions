@@ -15,6 +15,9 @@ GLWidget::GLWidget(QWidget *parent) :
 	t_Timer->start(timerInterval);
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
+	depthBetweenPoints = 0;
+	m_scale = 1;
+	m_incrementScale = 1;
 }
 
 GLWidget::~GLWidget()
@@ -56,9 +59,9 @@ void GLWidget::resizeGL(int width, int height)
 	m_aspectRatio = double(width) / double(height);
 	//gluOrtho2D(0, width, height, 0);
 	if (width <= height)
-		glOrtho(-range, range, -range / m_aspectRatio, range / m_aspectRatio, range, -range);
+		glOrtho(-range, range, -range / m_aspectRatio, range / m_aspectRatio, range*4, -range*4);
 	else
-		glOrtho(-range * m_aspectRatio, range * m_aspectRatio, -range, range, range, -range);
+		glOrtho(-range * m_aspectRatio, range * m_aspectRatio, -range, range, range*4, -range*4);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -76,6 +79,7 @@ void GLWidget::paintGL()
 	glPushMatrix();
 	glRotatef(m_theta, 1.0f, 0.0f, 0.0f);
 	glRotatef(m_phi, 0.0f, 0.0f, 1.0f);
+	glScalef(m_scale, m_scale, m_scale);
 
 	// Draw scene
 	drawScene();
@@ -122,7 +126,7 @@ void GLWidget::generateControlPoints()
 	bezier.clear();
 	points.clear();
 	bezier.resize(degU);
-	for (int i = 0; i < degU; i++)
+	/*for (int i = 0; i < degU; i++)
 	{
 		bezier[i].resize(degV);
 		for (int j = 0; j < degV; j++)
@@ -133,6 +137,38 @@ void GLWidget::generateControlPoints()
 			bezier[i][j] = QVector3D(x, y, z);
 			points.push_back(bezier[i][j]);
 		}
+	}*/
+
+	int x = -degU/2*20;
+	int y = -degV/2*20;
+	int zx = 0;
+	int zy = 0;
+	for (int i = 0; i < degU; i++)
+	{
+		bezier[i].resize(degV);
+		for (int j = 0; j < degV; j++)
+		{
+			bezier[i][j] = QVector3D(x, y, zy);
+			points.push_back(bezier[i][j]);
+			y += 20;
+			if (j < degV / 2) {
+				zy += 5 * depthBetweenPoints;
+			}
+			else
+			{
+				zy -= 5 * depthBetweenPoints;
+			}
+		}
+		y = -degV/2*20;
+		x += 20;
+		if (i < degU / 2) {
+			zx += 5 * depthBetweenPoints;
+		}
+		else
+		{
+			zx -= 5 * depthBetweenPoints;
+		}
+		zy = zx;
 	}
 	calculateSurfaceBezier();
 }
@@ -376,15 +412,42 @@ void GLWidget::keyPressEvent(QKeyEvent* e)
 		m_theta -= 2.0f;
 		//update();
 		break;
+	case Qt::Key_Minus:
+		depthBetweenPoints -= 1;
+		generateControlPoints();
+		break;
+	case Qt::Key_Plus:
+		depthBetweenPoints += 1;
+		generateControlPoints();
+		break;
 	}
 }
+
+void GLWidget::wheelEvent(QWheelEvent * event)
+{	  
+	m_incrementScale += event->delta() / 120;
+	if (m_incrementScale == 0 && event->delta() / 120 > 0) {
+		m_incrementScale = 1.0f;
+	}
+	if (m_incrementScale == 0 && event->delta() / 120 < 0) {
+		m_incrementScale = -1.0f;
+	}
+	if (m_incrementScale < 0) {
+		m_scale = 1 / -m_incrementScale;
+	}
+	else
+	{
+		m_scale = m_incrementScale;
+	}
+	//resizeGL(screenH, screenW);
+};
 
 // Réinitialiser le caméra au paramètres par défaut
 void GLWidget::resetCamera() 
 {
 	m_theta = 180.0f;
 	m_phi = 0.0f;
-	QApplication::setOverrideCursor(Qt::PointingHandCursor);
+	//QApplication::setOverrideCursor(Qt::PointingHandCursor);
 }
 
 // Réinitialiser les données
