@@ -45,6 +45,7 @@ public slots:
 	void setMovePoint(int m) { movePoint = m == 0 ? false : true; }
 	void setGrid(int g) { showGrid = g == 0 ? false : true; }
 	void setEnvelop3D(int e) { showEnvelop3D = e == 0 ? false : true; }
+	void setWireframe(int e) { showWireframe = e == 0 ? false : true; }
 	// Réinitialiser les données
 	void resetData();
 	// Réinitialiser le caméra au paramètres par défaut
@@ -106,5 +107,6 @@ private:
 	bool showVoronoi = false;
 	bool movePoint = false;
 	bool showEnvelop3D = false;
+	bool showWireframe = false;
 	bool showGrid = false;
 };

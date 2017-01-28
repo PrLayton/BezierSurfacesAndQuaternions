@@ -189,6 +189,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="cbShowWireframe">
+       <property name="text">
+        <string>Filaire</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QCheckBox" name="cbShowGrid">
        <property name="text">
         <string>Afficher la grille et les axes</string>

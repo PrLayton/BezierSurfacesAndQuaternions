@@ -18,6 +18,22 @@ GLWidget::GLWidget(QWidget *parent) :
 	depthBetweenPoints = 0;
 	m_scale = 1;
 	m_incrementScale = 1;
+
+	/*QOpenGLShader vertexShader(QOpenGLShader::Vertex);
+	QByteArray code = "uniform vec4 color;\n"
+		"uniform highp mat4 matrix;\n"
+		"void main(void) { gl_Position = gl_Vertex*matrix; }";
+	vertexShader.compileSourceCode(code);
+
+	QOpenGLShader fragmentShader(QOpenGLShader::Fragment);
+	code = "uniform vec4 color;\n"
+		"void main(void) { gl_FragColor = color; }";
+	fragmentShader.compileSourceCode(code);
+
+	QOpenGLShaderProgram program;
+	program.addShader(&vertexShader);
+	program.addShader(&fragmentShader);
+	program.link();*/
 }
 
 GLWidget::~GLWidget()
@@ -198,7 +214,13 @@ void GLWidget::drawSurfaceBezier()
 	{
 		for (int j = 0; j < precision-1; j++)
 		{
-			glBegin(GL_LINE_STRIP);
+			if (showWireframe) {
+				glBegin(GL_LINE_STRIP);
+			}
+			else
+			{
+				glBegin(GL_TRIANGLE_STRIP);
+			}
 			glVertex3f(surfBezier[i][j].x(), surfBezier[i][j].y(), surfBezier[i][j].z());
 			glVertex3f(surfBezier[i + 1][j].x(), surfBezier[i + 1][j].y(), surfBezier[i + 1][j].z());
 			glVertex3f(surfBezier[i + 1][j + 1].x(), surfBezier[i + 1][j + 1].y(), surfBezier[i + 1][j + 1].z());
