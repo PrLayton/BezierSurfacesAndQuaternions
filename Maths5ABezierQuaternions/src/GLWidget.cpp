@@ -18,22 +18,6 @@ GLWidget::GLWidget(QWidget *parent) :
 	depthBetweenPoints = 0;
 	m_scale = 1;
 	m_incrementScale = 1;
-
-	/*QOpenGLShader vertexShader(QOpenGLShader::Vertex);
-	QByteArray code = "uniform vec4 color;\n"
-		"uniform highp mat4 matrix;\n"
-		"void main(void) { gl_Position = gl_Vertex*matrix; }";
-	vertexShader.compileSourceCode(code);
-
-	QOpenGLShader fragmentShader(QOpenGLShader::Fragment);
-	code = "uniform vec4 color;\n"
-		"void main(void) { gl_FragColor = color; }";
-	fragmentShader.compileSourceCode(code);
-
-	QOpenGLShaderProgram program;
-	program.addShader(&vertexShader);
-	program.addShader(&fragmentShader);
-	program.link();*/
 }
 
 GLWidget::~GLWidget()
@@ -50,12 +34,34 @@ void GLWidget::timeOutSlot()
 // Initialisation du module OpenGL
 void GLWidget::initializeGL()
 {
+	/*QOpenGLShader vertexShader(QOpenGLShader::Vertex);
+	QByteArray code = "uniform vec4 color;\n"
+		"uniform highp mat4 matrix;\n"
+		"void main(void) { gl_Position = gl_Vertex*matrix; }";
+	vertexShader.compileSourceCode(code);
+
+	QOpenGLShader fragmentShader(QOpenGLShader::Fragment);
+	code = "uniform vec4 color;\n"
+		"void main(void) { gl_FragColor = color; }";
+	fragmentShader.compileSourceCode(code);
+
+	program.addShader(&vertexShader);
+	program.addShader(&fragmentShader);
+	program.link();*/
+
+
 	glClearColor(0, 0, 0, 0.0f);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	glDepthFunc(GL_LEQUAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	range = 100.0;
 	generateControlPoints();
+
+	m_shader.addShaderFromSourceCode(QOpenGLShader::Vertex, "VertexShader.vs");
+	m_shader.addShaderFromSourceCode(QOpenGLShader::Fragment, "FragmentShader.fs");
+	m_shader.link();
 }
 
 // Redimensionner de la scène pour adapter à la fenêtre principale
@@ -86,7 +92,20 @@ void GLWidget::resizeGL(int width, int height)
 // Fonction mettre à jour de la scène OpenGL
 void GLWidget::paintGL()
 {
-	glClearColor(0, 0, 0, 0.0f);
+	/*m_projectionMatrix.setToIdentity();
+	qreal
+		ratio = qreal(window()->width()) / qreal(window()->height());
+	m_projectionMatrix.perspective(90, ratio, 0.5, 40);
+	m_viewMatrix.setToIdentity();
+	QVector3D eye = QVector3D(0, 0, 2);
+	QVector3D center = QVector3D(0, 0, 0);
+	QVector3D up = QVector3D(0, 1, 0);
+	m_viewMatrix.lookAt(eye, center, up);
+	*/
+	m_modelMatrix.setToIdentity();
+	m_modelMatrix.rotate(45, 0, 1, 0);
+	QMatrix4x4 modelViewMatrix = m_viewMatrix*m_modelMatrix;
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glColor3f(1.0f, 0.0f, 0.0f);
@@ -98,14 +117,40 @@ void GLWidget::paintGL()
 	glScalef(m_scale, m_scale, m_scale);
 
 	// Draw scene
-	drawScene();
+	drawScene(modelViewMatrix);
 
 	glPopMatrix();
+
+
 }
 
 // Fonction rendu de la scène
-void GLWidget::drawScene()
+void GLWidget::drawScene(QMatrix4x4 mvMatrix)
 {
+	/*m_shader.bind();
+	m_shader.setAttributeArray("Vertex", GL_FLOAT, m_data.constData(), 3, sizeof(ScenePoint));
+	m_shader.enableAttributeArray("Vertex");
+	m_shader.setAttributeArray("Normal", GL_FLOAT, &m_data[0].normal, 3, sizeof(ScenePoint));
+	m_shader.enableAttributeArray("Normal");
+	m_shader.setUniformValue("material.ka", QVector3D(0.1, 0, 0.0));
+	m_shader.setUniformValue("material.kd", QVector3D(0.7, 0.0, 0.0));
+	m_shader.setUniformValue("material.ks", QVector3D(1.0, 1.0, 1.0));
+	m_shader.setUniformValue("material.shininess", 128.0f);
+	m_shader.setUniformValue("light.position", QVector3D(2, 1, 1));
+	m_shader.setUniformValue("material.shininess", QVector3D(1,1,1));
+
+	m_shader.setUniformValue("projectionMatrix", m_projectionMatrix);
+	m_shader.setUniformValue("modelViewMatrix", mvMatrix);
+	m_shader.setUniformValue("mvpMatrix", m_projectionMatrix*mvMatrix);
+	m_shader.setUniformValue("normalMatrix", mvMatrix.normalMatrix());
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);*/
+
+	/*QMatrix4x4 m = { 10,0,0,0, 0,10,0,0, 0,0,10,0, 0,0,0,10};
+	QColor color = Qt::red;
+	program.setUniformValue("matrix", m);
+	program.setUniformValue("color", color);*/
+
 	// Afficher la grille et les Axes dans la scène
 	if (showGrid)
 		drawGridandAxes();
@@ -210,10 +255,34 @@ void GLWidget::drawSurfaceBezier()
 	float white[] = { 1.0, 1.0, 1.0 };
 	float red[] = { 1.0, 0.0, 0.0 };
 	glColor3fv(red);
+	QVector3D posLight = { 0,0,100 };
+	QVector3D normal;
+	iAmbiant = { 1.0,1.0,1.0 };
+	kAmbiant = 0.2;
+	kDiffuse = 0.8;
+	iDiffuse = { 1.0,1.0,1.0 };
+
 	for (int i = 0; i < precision - 1; i++)
 	{
 		for (int j = 0; j < precision-1; j++)
 		{
+			//glColor3fv(iAmbiant*kAmbiant);
+			QVector3D u = surfBezier[i + 1][j] - surfBezier[i][j];
+			QVector3D v = surfBezier[i + 1][j + 1] - surfBezier[i][j];
+			QVector3D normal = crossProductNormalized(u, v);
+			/*glColor3fv(red);
+			glBegin(GL_LINES);
+			glVertex3f(surfBezier[i][j].x(), surfBezier[i][j].y(), surfBezier[i][j].z());
+			glVertex3f(normal.x()*100 - surfBezier[i][j].x(), normal.y()*100 - surfBezier[i][j].y(), normal.z()*100 - surfBezier[i][j].z());
+			glEnd();*/
+
+			QVector3D dir = posLight - surfBezier[i][j];
+			float angle = dot(normal, dir)/(sqrt(pow(normal.x(),2)+ pow(normal.y(), 2)+ pow(normal.z(), 2))*sqrt(pow(dir.x(), 2) + pow(dir.y(), 2) + pow(dir.z(), 2)));
+			if (angle <= 0) angle = 0;
+			QVector3D _red = iAmbiant*kAmbiant + iDiffuse*kDiffuse * angle;
+			float __red[] = { _red.x(), _red.y(),_red.z() };
+			glColor3fv(__red);
+
 			if (showWireframe) {
 				glBegin(GL_LINE_STRIP);
 			}
