@@ -158,8 +158,8 @@ void GLWidget::drawScene(QMatrix4x4 mvMatrix)
 	drawPoints(ptlight, QVector3D(1.0, 1.0, 1.0), 20);
 	if (showPts)
 	{
-		drawPointsMatrix(bezier, QVector3D(1.0, 0, 0), POINT_SIZE);
-		drawPointsMatrix(surfBezier, QVector3D(0, 1.0, 0), 5);
+		drawPointsMatrix(ptsRotated, QVector3D(1.0, 0, 0), POINT_SIZE);
+		drawPointsMatrix(ptsBezier, QVector3D(0, 1.0, 0), 5);
 	}
 }
 
@@ -167,8 +167,9 @@ void GLWidget::generateControlPoints()
 {
 	if (precision < 1 || degU < 1 || degV < 1)
 		return;
-	bezier.clear();
-	bezier.resize(degU);
+	ptsControl.clear();
+	ptsRotated.clear();
+	ptsControl.resize(degU);
 	int x, y, z, zx, zy;
 	switch (modeGenPts)
 	{
@@ -180,7 +181,7 @@ void GLWidget::generateControlPoints()
 				x = randomGeneration(-130, 130);
 				y = randomGeneration(-90, 90);
 				z = randomGeneration(-50, 50);
-				bezier[i].push_back(QVector3D(x, y, z));
+				ptsControl[i].push_back(QVector3D(x, y, z));
 			}
 		}
 		break;
@@ -193,7 +194,7 @@ void GLWidget::generateControlPoints()
 		{
 			for (int j = 0; j < degV; j++)
 			{
-				bezier[i].push_back(QVector3D(x, y, zy));
+				ptsControl[i].push_back(QVector3D(x, y, zy));
 				y += 20;
 				if (j < degV / 2)
 					zy += 5 * depthBetweenPoints;
@@ -212,6 +213,19 @@ void GLWidget::generateControlPoints()
 	default:
 		break;
 	}
+	ptsRotated = ptsControl;
+	emit rotationReset();
+	generateSurfaceBezier();
+}
+
+void GLWidget::doRotation(QVector3D rot)
+{
+	if (precision < 1 || degU < 1 || degV < 1)
+		return;
+	QQuaternion quat = QQuaternion::fromEulerAngles(rot);
+	for (int i = 0; i < degU; i++)
+		for (int j = 0; j < degV; j++)
+			ptsRotated[i][j] = quat.rotatedVector(ptsControl[i][j]);
 	generateSurfaceBezier();
 }
 
@@ -219,10 +233,10 @@ void GLWidget::generateSurfaceBezier()
 {
 	if (precision < 1 || degU < 1 || degV < 1)
 		return;
-	surfBezier.clear();
+	ptsBezier.clear();
 	QElapsedTimer timer;
 	timer.start();
-	surfBezier = calcSurfaceBezier(bezier, precision);
+	ptsBezier = calcSurfaceBezier(ptsRotated, precision);
 	int time = timer.nsecsElapsed() / 1000;
 	labelTimer = QString::number(time) + " us";
 	emit labelChanged();
@@ -245,8 +259,8 @@ void GLWidget::drawSurfaceBezier()
 			else
 			{
 				//glColor3fv(iAmbiant*kAmbiant);
-				QVector3D u = surfBezier[i + 1][j] - surfBezier[i][j];
-				QVector3D v = surfBezier[i + 1][j + 1] - surfBezier[i][j];
+				QVector3D u = ptsBezier[i + 1][j] - ptsBezier[i][j];
+				QVector3D v = ptsBezier[i + 1][j + 1] - ptsBezier[i][j];
 				QVector3D normal = QVector3D::crossProduct(u, v).normalized();
 				/*glColor3fv(red);
 				glBegin(GL_LINES);
@@ -254,19 +268,19 @@ void GLWidget::drawSurfaceBezier()
 				glVertex3f(normal.x()*100 - surfBezier[i][j].x(), normal.y()*100 - surfBezier[i][j].y(), normal.z()*100 - surfBezier[i][j].z());
 				glEnd();*/
 
-				QVector3D dir = posLight - surfBezier[i][j];
+				QVector3D dir = posLight - ptsBezier[i][j];
 				float cosAngle = QVector3D::dotProduct(normal, dir) / (normal.length() * dir.length());
 				cosAngle = (cosAngle <= 0) ? 0 : cosAngle;
 				QVector3D light = iAmbiant * kAmbiant + iDiffuse * kDiffuse * cosAngle;
 				glColor3fv(convertVector3D(light));
 				glBegin(GL_TRIANGLE_STRIP);
 			}
-			glVertex3fv(convertVector3D(surfBezier[i][j]));
-			glVertex3fv(convertVector3D(surfBezier[i + 1][j]));
-			glVertex3fv(convertVector3D(surfBezier[i + 1][j + 1]));
-			glVertex3fv(convertVector3D(surfBezier[i][j]));
-			glVertex3fv(convertVector3D(surfBezier[i + 1][j + 1]));
-			glVertex3fv(convertVector3D(surfBezier[i][j + 1]));
+			glVertex3fv(convertVector3D(ptsBezier[i][j]));
+			glVertex3fv(convertVector3D(ptsBezier[i + 1][j]));
+			glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
+			glVertex3fv(convertVector3D(ptsBezier[i][j]));
+			glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
+			glVertex3fv(convertVector3D(ptsBezier[i][j + 1]));
 			glEnd();
 		}
 	}
@@ -477,8 +491,9 @@ void GLWidget::resetCamera()
 // Réinitialiser les données
 void GLWidget::resetData()
 {
-	bezier.clear();
-	surfBezier.clear();
+	ptsControl.clear();
+	ptsBezier.clear();
+	ptsRotated.clear();
 	points.clear();
 	degU = 0;
 	degV = 0;

@@ -52,7 +52,7 @@
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QGroupBox" name="groupEnvelop">
+      <widget class="QGroupBox" name="groupMode">
        <property name="title">
         <string>Mode de génération des points</string>
        </property>
@@ -77,7 +77,7 @@
         <item>
          <widget class="QLabel" name="laHorizontal">
           <property name="text">
-           <string>Degré m</string>
+           <string>Degré horizontal</string>
           </property>
          </widget>
         </item>
@@ -97,7 +97,7 @@
         <item>
          <widget class="QLabel" name="laVertical">
           <property name="text">
-           <string>Degré n</string>
+           <string>Degré vertical</string>
           </property>
          </widget>
         </item>
@@ -114,27 +114,75 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QLabel" name="laPrecision">
+          <property name="text">
+           <string>Nombre de pas (précision)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="spinPrecision">
+          <property name="minimum">
+           <number>2</number>
+          </property>
+          <property name="maximum">
+           <number>1000</number>
+          </property>
+          <property name="value">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="laPrecision">
-       <property name="text">
-        <string>Nombre de pas (précision)</string>
+      <widget class="QGroupBox" name="groupRotation">
+       <property name="title">
+        <string>Rotation</string>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="spinPrecision">
-       <property name="minimum">
-        <number>2</number>
-       </property>
-       <property name="maximum">
-        <number>1000</number>
-       </property>
-       <property name="value">
-        <number>10</number>
-       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QDoubleSpinBox" name="spinX">
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <double>359.899999999999977</double>
+          </property>
+          <property name="singleStep">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="spinY">
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <double>359.899999999999977</double>
+          </property>
+          <property name="singleStep">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="spinZ">
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <double>359.899999999999977</double>
+          </property>
+          <property name="singleStep">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>

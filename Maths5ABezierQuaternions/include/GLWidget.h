@@ -25,6 +25,7 @@ public:
 	void resizeGL(int width, int height);
 	void paintGL();
 	void setModeGeneration(int mode) { modeGenPts = mode; generateControlPoints(); }
+	void doRotation(QVector3D rot);
 	QString labelTimer;
 	QPoint mouse;
 	QVector3D mouseWorld;
@@ -41,6 +42,7 @@ signals:
 	// Signal Qt pour mettre à jour les labels de Timers
 	void labelChanged();
 	void mouseMoved();
+	void rotationReset();
 
 public slots:
 	void timeOutSlot();
@@ -92,7 +94,7 @@ private:
 	QMatrix4x4 m_projectionMatrix;
 
 	// Paramètres des lumières
-	QVector3D posLight = { 0, 0, 300 };
+	QVector3D posLight = { 0, 0, 200 };
 	QVector3D iAmbiant = { 1.0,1.0,1.0 };
 	QVector3D iDiffuse = { 1.0,1.0,1.0 }; 
 	float kAmbiant = 0.2;
@@ -102,7 +104,7 @@ private:
 	
 	// Les données
 	vector<QVector3D> points;
-	vector<vector<QVector3D>> bezier, surfBezier;
+	vector<vector<QVector3D>> ptsControl, ptsRotated, ptsBezier;
 	int pointSelected = -1;
 
 	// Les paramètres de l'UI

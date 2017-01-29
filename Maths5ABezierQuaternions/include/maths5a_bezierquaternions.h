@@ -15,6 +15,9 @@ public:
 
 private slots:
 	void setModeGenerationPoints();
+	void setRotation();
+	void resetRotation();
+	void resetData();
 	void updateLabelTimer();
 	void updateStatus();
 	void quit();
