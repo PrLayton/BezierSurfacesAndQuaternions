@@ -14,8 +14,9 @@ public:
 	~Math5A_Bezier();
 
 private slots:
-	void modeEnvelop();
-	void updateLabels(int);
+	void setModeGenerationPoints();
+	void updateLabelTimer();
+	void updateStatus();
 	void quit();
 
 private:

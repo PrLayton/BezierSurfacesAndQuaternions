@@ -15,7 +15,6 @@ GLWidget::GLWidget(QWidget *parent) :
 	t_Timer->start(timerInterval);
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
-	depthBetweenPoints = 0;
 	m_scale = 1;
 	m_incrementScale = 1;
 
@@ -55,7 +54,6 @@ void GLWidget::initializeGL()
 	glDepthFunc(GL_LEQUAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	range = 100.0;
-	generateControlPoints();
 }
 
 // Redimensionner de la scène pour adapter à la fenêtre principale
@@ -110,28 +108,8 @@ void GLWidget::drawScene()
 	if (showGrid)
 		drawGridandAxes();
 
-	// Affichage de la Triangulation
-	QElapsedTimer timer;
-	int time;
-	// Affichage de l'envelope convexe
-	vector<QVector3D> envelop;
-	switch (modeEnvelop)
-	{
-	case 1:	// Enveloppe par méthode marche de Jarvis
-		/*timer.start();
-		envelop = EnvelopeJarvis(points);
-		time = timer.nsecsElapsed() / 1000;
-		labelTimer[0] = QString::number(time) + " us";
-		emit labelChanged(0);
-		drawPoly(envelop, QVector3D(150.0f, 150.0f, 150.0f), 3);*/
-		break;
-	case 2:	// Enveloppe par méthode Graham-Scan
-		break;
-	default:
-		break;
-	}
-	drawPoints(points, QVector3D(255.0f, 255.0f, 255.0f));
-	drawPoints(ptsSurf, QVector3D(0, 255.0f, 0));
+	drawPointsMatrix(bezier, QVector3D(255.0f, 255.0f, 255.0f), POINT_SIZE);
+	drawPointsMatrix(surfBezier, QVector3D(0, 255.0f, 0), 5);
 	drawSurfaceBezier();
 }
 
@@ -140,65 +118,64 @@ void GLWidget::generateControlPoints()
 	if (precision < 1 || degU < 1 || degV < 1)
 		return;
 	bezier.clear();
-	points.clear();
 	bezier.resize(degU);
-	/*for (int i = 0; i < degU; i++)
+	int x, y, z, zx, zy;
+	switch (modeGenPts)
 	{
-		bezier[i].resize(degV);
-		for (int j = 0; j < degV; j++)
+	case 1:
+		for (int i = 0; i < degU; i++)
 		{
-			int x = randomGeneration(-130, 130);
-			int y = randomGeneration(-90, 90);
-			int z = randomGeneration(-50, 50);
-			bezier[i][j] = QVector3D(x, y, z);
-			points.push_back(bezier[i][j]);
-		}
-	}*/
-
-	int x = -degU/2*20;
-	int y = -degV/2*20;
-	int zx = 0;
-	int zy = 0;
-	for (int i = 0; i < degU; i++)
-	{
-		bezier[i].resize(degV);
-		for (int j = 0; j < degV; j++)
-		{
-			bezier[i][j] = QVector3D(x, y, zy);
-			points.push_back(bezier[i][j]);
-			y += 20;
-			if (j < degV / 2) {
-				zy += 5 * depthBetweenPoints;
-			}
-			else
+			for (int j = 0; j < degV; j++)
 			{
-				zy -= 5 * depthBetweenPoints;
+				x = randomGeneration(-130, 130);
+				y = randomGeneration(-90, 90);
+				z = randomGeneration(-50, 50);
+				bezier[i].push_back(QVector3D(x, y, z));
 			}
 		}
+		break;
+	case 2:
+		x = -degU/2*20;
 		y = -degV/2*20;
-		x += 20;
-		if (i < degU / 2) {
-			zx += 5 * depthBetweenPoints;
-		}
-		else
+		zx = 0;
+		zy = 0;
+		for (int i = 0; i < degU; i++)
 		{
-			zx -= 5 * depthBetweenPoints;
+			for (int j = 0; j < degV; j++)
+			{
+				bezier[i].push_back(QVector3D(x, y, zy));
+				y += 20;
+				if (j < degV / 2)
+					zy += 5 * depthBetweenPoints;
+				else
+					zy -= 5 * depthBetweenPoints;
+			}
+			y = -degV/2*20;
+			x += 20;
+			if (i < degU / 2) 
+				zx += 5 * depthBetweenPoints;
+			else
+				zx -= 5 * depthBetweenPoints;
+			zy = zx;
 		}
-		zy = zx;
+		break;
+	default:
+		break;
 	}
-	calculateSurfaceBezier();
+	generateSurfaceBezier();
 }
 
-void GLWidget::calculateSurfaceBezier()
+void GLWidget::generateSurfaceBezier()
 {
 	if (precision < 1 || degU < 1 || degV < 1)
 		return;
 	surfBezier.clear();
-	ptsSurf.clear();
+	QElapsedTimer timer;
+	timer.start();
 	surfBezier = calcSurfaceBezier(bezier, precision);
-	for (int i = 0; i < precision; i++)
-		for (int j = 0; j < precision; j++)
-			ptsSurf.push_back(surfBezier[i][j]);
+	int time = timer.nsecsElapsed() / 1000;
+	labelTimer = QString::number(time) + " us";
+	emit labelChanged();
 }
 
 void GLWidget::drawSurfaceBezier()
@@ -210,23 +187,20 @@ void GLWidget::drawSurfaceBezier()
 	float white[] = { 1.0, 1.0, 1.0 };
 	float red[] = { 1.0, 0.0, 0.0 };
 	glColor3fv(red);
-	for (int i = 0; i < precision - 1; i++)
+	for (int i = 0; i < precision; i++)
 	{
-		for (int j = 0; j < precision-1; j++)
+		for (int j = 0; j < precision; j++)
 		{
-			if (showWireframe) {
+			if (showWireframe)
 				glBegin(GL_LINE_STRIP);
-			}
 			else
-			{
 				glBegin(GL_TRIANGLE_STRIP);
-			}
-			glVertex3f(surfBezier[i][j].x(), surfBezier[i][j].y(), surfBezier[i][j].z());
-			glVertex3f(surfBezier[i + 1][j].x(), surfBezier[i + 1][j].y(), surfBezier[i + 1][j].z());
-			glVertex3f(surfBezier[i + 1][j + 1].x(), surfBezier[i + 1][j + 1].y(), surfBezier[i + 1][j + 1].z());
-			glVertex3f(surfBezier[i][j].x(), surfBezier[i][j].y(), surfBezier[i][j].z());
-			glVertex3f(surfBezier[i + 1][j + 1].x(), surfBezier[i + 1][j + 1].y(), surfBezier[i + 1][j + 1].z());
-			glVertex3f(surfBezier[i][j + 1].x(), surfBezier[i][j + 1].y(), surfBezier[i][j + 1].z());
+			glVertex3fv(convertVector3D(surfBezier[i][j]));
+			glVertex3fv(convertVector3D(surfBezier[i + 1][j]));
+			glVertex3fv(convertVector3D(surfBezier[i + 1][j + 1]));
+			glVertex3fv(convertVector3D(surfBezier[i][j + 1]));
+			glVertex3fv(convertVector3D(surfBezier[i][j]));
+			glVertex3fv(convertVector3D(surfBezier[i + 1][j + 1]));
 			glEnd();
 		}
 		/*glBegin(GL_TRIANGLE_STRIP);
@@ -248,6 +222,36 @@ void GLWidget::drawSurfaceBezier()
 	}
 }
 
+// Dessiner des points
+void GLWidget::drawPoints(vector<QVector3D> pts, QVector3D color, int ptSize)
+{
+	int nbPoints = pts.size();
+	if (nbPoints == 0)
+		return;
+	glColor3fv(convertVector3D(color));
+	glPointSize(ptSize);
+	glBegin(GL_POINTS);
+	for (int i = 0; i < nbPoints; i++)
+		glVertex3fv(convertVector3D(pts[i]));
+	glEnd();
+}
+
+// Dessiner des points
+void GLWidget::drawPointsMatrix(vector<vector<QVector3D>> pts, QVector3D color, int ptSize)
+{
+	if (pts.size() == 0 || pts[0].size() == 0)
+		return;
+	int m = pts.size();
+	int n = pts[0].size();
+	glColor3fv(convertVector3D(color));
+	glPointSize(ptSize);
+	glBegin(GL_POINTS);
+	for (int i = 0; i < m; i++)
+		for (int j = 0; j < n; j++)
+			glVertex3fv(convertVector3D(pts[i][j]));
+	glEnd();
+}
+
 // Conversion de coordonnées d'écran à coordonnées de la scène OPENGL
 QVector3D GLWidget::convertXY(int X, int Y)
 {
@@ -257,14 +261,13 @@ QVector3D GLWidget::convertXY(int X, int Y)
 // Callback pour les click de la souris
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
-	pointSelected = findNearestPoint(event->pos());
-	QElapsedTimer timer;
+	//pointSelected = findNearestPoint(event->pos());
 	// Ajout d'un point
 	if (event->buttons() & Qt::LeftButton)
 	{
 		if (pointSelected == -1) 
 		{  
-			points.push_back(convertXY(event->pos().x(), event->pos().y()));
+			//points.push_back(convertXY(event->pos().x(), event->pos().y()));
 			needUpdate = true;
 		}
 	}
@@ -273,7 +276,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 	{
 		if (pointSelected != -1) 
 		{
-			points.erase(points.begin() + pointSelected);
+			//points.erase(points.begin() + pointSelected);
 			needUpdate = true;
 		}
 	}
@@ -282,12 +285,14 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 // Callback pour le mouvement de la souris
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	mousePos = event->pos();
+	mouse = event->pos();
+	mouseWorld = convertXY(mouse.x(), mouse.y());
+	emit mouseMoved();
 	if (event->buttons() & Qt::LeftButton)
 	{
 		if (pointSelected >= 0)
 		{
-			points[pointSelected] = convertXY(event->pos().x(), event->pos().y());
+			//points[pointSelected] = convertXY(event->pos().x(), event->pos().y());
 			needUpdate = true;
 		}
 	}
@@ -298,17 +303,16 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton && pointSelected >= 0)
 	{
-		//update();
 	}
 }
 
 // Chercher du point (dans la nuage existante) la plus proche de la souris
-int GLWidget::findNearestPoint(QPoint p)
+int GLWidget::findNearestPoint(vector<QVector3D> pts, QPoint p)
 {
-	int nbPoints = points.size();
+	int nbPoints = pts.size();
 	for (int i = 0; i < nbPoints; i++)
 	{
-		QVector3D d = convertXY(p.x(), p.y()) - QVector3D(points[i].x(), points[i].y(), 0);
+		QVector3D d = convertXY(p.x(), p.y()) - QVector3D(pts[i].x(), pts[i].y(), 0);
 		if (sqrt(pow(d.x(), 2) + pow(d.y(), 2) <= POINT_SIZE*4))
 			return i;
 	}
@@ -357,104 +361,52 @@ void GLWidget::drawGridandAxes()
 	glEnd();
 }
 
-// Dessiner des côtés à partir des couples de points
-void  GLWidget::drawLinesFromPoints(vector<QVector3D> pts)
-{
-	int nbSides = pts.size();
-	if (nbSides == 0)
-		return;
-	glColor3f(150.0f, 0.0f, 0.0f);
-	//glPushAttrib is done to return everything to normal after drawing
-	glPushAttrib(GL_ENABLE_BIT);
-	glLineStipple(10, 0xAAAA);
-	//glEnable(GL_LINE_STIPPLE);
-	glBegin(GL_LINES);
-	for (int i = 0; i < nbSides; i+=2)
-	{
-		glVertex3f(pts[i].x(), pts[i].y(), pts[i].z());
-		glVertex3f(pts[i + 1].x(), pts[i + 1].y(), pts[i + 1].z());
-	}
-	glEnd();
-	glPopAttrib();
-}
-
-// Dessiner d'un polygone à partir d'un ensemble des points
-void GLWidget::drawPoly(vector<QVector3D> pts, QVector3D color, float width)
-{
-	int nbPoints = pts.size();
-	if (nbPoints == 0)
-		return;
-	glColor3f(color.x(), color.y(), color.z());
-	glLineWidth(width);
-	glBegin(GL_LINE_LOOP);
-	for (int i = 0; i < nbPoints; i++)
-		glVertex3f(pts[i].x(), pts[i].y(), pts[i].z());
-	glEnd();
-}
-
-// Dessiner des points
-void GLWidget::drawPoints(vector<QVector3D> points, QVector3D color)
-{
-	int nbPoints = points.size();
-	if (nbPoints == 0)
-		return;
-	glColor3f(color.x(), color.y(), color.z());
-	glPointSize(POINT_SIZE);
-	glBegin(GL_POINTS);
-	for (int i = 0; i < nbPoints; i++)
-		glVertex3f(points[i].x(), points[i].y(), points[i].z());
-	glEnd();
-}
-
 // Les contrôles de clavier
 void GLWidget::keyPressEvent(QKeyEvent* e)
 {
 	switch (e->key())
 	{
-	case Qt::Key_Escape:
-		QCoreApplication::instance()->quit();
-		break;
-
-	case Qt::Key_Left:
-		m_phi += 2.0f;
-		//update();
-		break;
-
-	case Qt::Key_Right:
-		m_phi -= 2.0f;
-		//update();
-		break;
-
-	case Qt::Key_Up:
-		m_theta += 2.0f;
-		//update();
-		break;
-
-	case Qt::Key_Down:
-		m_theta -= 2.0f;
-		//update();
-		break;
-	case Qt::Key_Minus:
-		depthBetweenPoints -= 1;
-		generateControlPoints();
-		break;
-	case Qt::Key_Plus:
-		depthBetweenPoints += 1;
-		generateControlPoints();
-		break;
+		case Qt::Key_Escape:
+			qApp->quit();
+			break;
+		case Qt::Key_Left:
+			m_phi += 2.0f;
+			break;
+		case Qt::Key_Right:
+			m_phi -= 2.0f;
+			break;
+		case Qt::Key_Up:
+			m_theta += 2.0f;
+			break;
+		case Qt::Key_Down:
+			m_theta -= 2.0f;
+			break;
+		case Qt::Key_Minus:
+			depthBetweenPoints -= 1;
+			generateControlPoints();
+			break;
+		case Qt::Key_Plus:
+			depthBetweenPoints += 1;
+			generateControlPoints();
+			break;
+		default:
+			break;
 	}
 }
 
 void GLWidget::wheelEvent(QWheelEvent * event)
 {	  
 	m_incrementScale += event->delta() / 120;
-	if (m_incrementScale == 0 && event->delta() / 120 > 0) {
+	if (m_incrementScale == 0 && event->delta() / 120 > 0) 
+	{
 		m_incrementScale = 1.0f;
 	}
-	if (m_incrementScale == 0 && event->delta() / 120 < 0) {
+	if (m_incrementScale == 0 && event->delta() / 120 < 0) 
+	{
 		m_incrementScale = -1.0f;
 	}
-	if (m_incrementScale < 0) {
+	if (m_incrementScale < 0) 
+	{
 		m_scale = 1 / -m_incrementScale;
 	}
 	else
@@ -475,6 +427,10 @@ void GLWidget::resetCamera()
 // Réinitialiser les données
 void GLWidget::resetData()
 {
+	bezier.clear();
+	surfBezier.clear();
 	points.clear();
+	degU = 0;
+	degV = 0;
 	needUpdate = true;
 }

@@ -24,8 +24,10 @@ public:
 	void initializeGL();
 	void resizeGL(int width, int height);
 	void paintGL();
-	void changeModeEnvelop(int mode) { modeEnvelop = mode; needUpdate = true; }
-	QString labelTimer[5];
+	void setModeGeneration(int mode) { modeGenPts = mode; generateControlPoints(); }
+	QString labelTimer;
+	QPoint mouse;
+	QVector3D mouseWorld;
 
 protected:
 	// Les événements Qt de souris et du clavier
@@ -35,51 +37,41 @@ protected:
 	void wheelEvent(QWheelEvent * event);
 	virtual void keyPressEvent(QKeyEvent* e);
 
+signals:
+	// Signal Qt pour mettre à jour les labels de Timers
+	void labelChanged();
+	void mouseMoved();
+
 public slots:
 	void timeOutSlot();
 	void setDegreeU(int m) { degU = m; generateControlPoints(); }
 	void setDegreeV(int n) { degV = n; generateControlPoints(); }
-	void setPrecision(int p) { precision = p; calculateSurfaceBezier(); }
+	void setPrecision(int p) { precision = p; generateSurfaceBezier(); }
 	// Fonctions pour mettre à jour les paramètres de l'UI
-	void setVoronoi(int f) { showVoronoi = f == 0 ? false : true; }
-	void setMovePoint(int m) { movePoint = m == 0 ? false : true; }
 	void setGrid(int g) { showGrid = g == 0 ? false : true; }
-	void setEnvelop3D(int e) { showEnvelop3D = e == 0 ? false : true; }
 	void setWireframe(int e) { showWireframe = e == 0 ? false : true; }
 	// Réinitialiser les données
 	void resetData();
 	// Réinitialiser le caméra au paramètres par défaut
 	void resetCamera();
 
-signals:
-	// Signal Qt pour mettre à jour les labels de Timers
-	void labelChanged(int);
-
 private:
-	// Fonction rendu de la scène
-	void drawScene();
 	// Conversion de coordonnées d'écran à coordonnées de la scène OPENGL
 	QVector3D convertXY(int X, int Y);
 	// Chercher du point (dans la nuage existante) la plus proche de la souris
-	int findNearestPoint(QPoint p);
+	int findNearestPoint(vector<QVector3D> pts, QPoint p);
+	// Fonction rendu de la scène
+	void drawScene();
 	// Dessiner la grille et les axes
 	void drawGridandAxes();
 	// Dessiner des points
-	void drawPoints(vector<QVector3D> points, QVector3D color);
-	// Dessiner des côtés à partir des couples de points
-	void drawLinesFromPoints(vector<QVector3D> pts);
-	// Dessiner d'un polygone à partir d'un ensemble des points
-	void drawPoly(vector<QVector3D> pts, QVector3D color, float width);
-	
+	void drawPoints(vector<QVector3D> points, QVector3D color, int ptSize);
+	void drawPointsMatrix(vector<vector<QVector3D>> pts, QVector3D color, int ptSize);
 	// BEZIER
 	void generateControlPoints();
-	void calculateSurfaceBezier();
+	void generateSurfaceBezier();
 	void drawSurfaceBezier();
 
-	vector<vector<QVector3D>> bezier, surfBezier;
-	int degU = 1, degV = 1;
-	int precision = 5;
-	
 	// Les paramètres de caméra OPENGL
 	float m_theta;	// Rotation x-axis
 	float m_phi;	// Rotation  y-axis
@@ -93,20 +85,20 @@ private:
 	QPoint tmpRotValue;
 	int screenW;
 	int screenH;
-	QPoint mousePos;
 	QTimer *t_Timer;
-	int depthBetweenPoints;
 
 	// Les données
-	vector<QVector3D> points, ptsSurf;
+	vector<QVector3D> points;
+	vector<vector<QVector3D>> bezier, surfBezier;
 	int pointSelected = -1;
 
 	// Les paramètres de l'UI
-	int modeEnvelop = 1;
+	int modeGenPts = 1;		// 1 pour Aléatoire, 2 pour réglage de l'hauteur
+	int degU = 0;
+	int degV = 0;
+	int precision = 10;
+	int depthBetweenPoints = 0;
 	bool needUpdate = false;
-	bool showVoronoi = false;
-	bool movePoint = false;
-	bool showEnvelop3D = false;
 	bool showWireframe = false;
 	bool showGrid = false;
 };

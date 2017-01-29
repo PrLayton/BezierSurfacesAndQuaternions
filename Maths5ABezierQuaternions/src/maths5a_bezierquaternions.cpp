@@ -19,19 +19,18 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	shortcut = new QShortcut(QKeySequence("Ctrl+D"), this);
 	QObject::connect(shortcut, SIGNAL(activated()), glScene, SLOT(resetData()));
 
-	// Signal pour mettre à jour les lablels des Timers
-	connect(glScene, SIGNAL(labelChanged(int)), this, SLOT(updateLabels(int)));
+	// Signal pour mettre à jour le lablel du Timer
+	connect(glScene, SIGNAL(labelChanged()), this, SLOT(updateLabelTimer()));
 
 	// Connect signals aux éléments de l'UI
-	connect(ui.rbJarvis, SIGNAL(clicked()), this, SLOT(modeEnvelop()));
-	connect(ui.rbGrahamScan, SIGNAL(clicked()), this, SLOT(modeEnvelop()));
-	connect(ui.rbNoneEnv, SIGNAL(clicked()), this, SLOT(modeEnvelop()));
-	connect(ui.cbShowEnvelop3D, SIGNAL(stateChanged(int)), glScene, SLOT(setEnvelop3D(int)));
+	connect(ui.rbRandom, SIGNAL(clicked()), this, SLOT(setModeGenerationPoints()));
+	connect(ui.rbAdjust, SIGNAL(clicked()), this, SLOT(setModeGenerationPoints()));
 	connect(ui.cbShowWireframe, SIGNAL(stateChanged(int)), glScene, SLOT(setWireframe(int)));
 	connect(ui.cbShowGrid, SIGNAL(stateChanged(int)), glScene, SLOT(setGrid(int)));
 	connect(ui.bResetData, SIGNAL(clicked()), glScene, SLOT(resetData()));
 	connect(ui.bResetCam, SIGNAL(clicked()), glScene, SLOT(resetCamera()));
 	connect(ui.bQuit, SIGNAL(clicked()), this, SLOT(quit()));
+	connect(glScene, SIGNAL(mouseMoved()), this, SLOT(updateStatus()));
 
 	// Bézier
 	connect(ui.spinHori, SIGNAL(valueChanged(int)), glScene, SLOT(setDegreeU(int)));
@@ -39,32 +38,32 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	connect(ui.spinPrecision, SIGNAL(valueChanged(int)), glScene, SLOT(setPrecision(int)));
 }
 
-// Mettre à jour les labels des Timers
-void Math5A_Bezier::updateLabels(int label)
+// Mettre à jour le mode d'envelope
+void Math5A_Bezier::setModeGenerationPoints()
 {
-	switch (label)
+	if (ui.rbRandom->isChecked())
 	{
-	case 0:
-		ui.laTimeJarvis->setText(glScene->labelTimer[label]);
-		break;
-	default:
-		break;
+		glScene->setModeGeneration(1);
 	}
+	else if (ui.rbAdjust->isChecked())
+		glScene->setModeGeneration(2);
 }
 
-// Mettre à jour le mode d'envelope
-void Math5A_Bezier::modeEnvelop() 
+// Quitter
+void Math5A_Bezier::updateLabelTimer()
 {
-	if (ui.rbJarvis->isChecked())
-	{
-		glScene->changeModeEnvelop(1);
-	}
-	else if (ui.rbGrahamScan->isChecked())
-	{
-		glScene->changeModeEnvelop(2);
-	}
-	else
-		glScene->changeModeEnvelop(0);
+	ui.laTimeCalcSurface->setText(glScene->labelTimer);
+}
+
+// Mettre à jour la position de la souris et des polygones dans le status bar
+void Math5A_Bezier::updateStatus()
+{
+	ui.statusBar->showMessage((QString("Screen (%1,%2) - World (%3,%4)")
+		.arg(glScene->mouse.x())
+		.arg(glScene->mouse.y())
+		.arg(glScene->mouseWorld.x())
+		.arg(glScene->mouseWorld.y())
+	));
 }
 
 // Quitter

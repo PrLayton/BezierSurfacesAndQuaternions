@@ -54,13 +54,13 @@
      <item>
       <widget class="QGroupBox" name="groupEnvelop">
        <property name="title">
-        <string>Enveloppe convexe</string>
+        <string>Mode de génération des points</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QRadioButton" name="rbJarvis">
+         <widget class="QRadioButton" name="rbRandom">
           <property name="text">
-           <string>Marche de Jarvis</string>
+           <string>Aléatoire</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -68,87 +68,53 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="laTimeJarvis">
+         <widget class="QRadioButton" name="rbAdjust">
           <property name="text">
-           <string>0 us</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <string>Réglage de l'hauteur</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="rbGrahamScan">
+         <widget class="QLabel" name="laHorizontal">
           <property name="text">
-           <string>Graham-Scan</string>
+           <string>Degré m</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="laTimeGraham">
-          <property name="text">
-           <string>0 us</string>
+         <widget class="QSpinBox" name="spinHori">
+          <property name="minimum">
+           <number>0</number>
           </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
+          <property name="maximum">
+           <number>20</number>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="rbNoneEnv">
-          <property name="text">
-           <string>Rien</string>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
+          <property name="value">
+           <number>0</number>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="cbShowEnvelop3D">
+         <widget class="QLabel" name="laVertical">
           <property name="text">
-           <string>3D</string>
+           <string>Degré n</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="spinVerti">
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>20</number>
+          </property>
+          <property name="value">
+           <number>0</number>
           </property>
          </widget>
         </item>
        </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="laHorizontal">
-       <property name="text">
-        <string>Degré m</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="spinHori">
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>20</number>
-       </property>
-       <property name="value">
-        <number>1</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="laVertical">
-       <property name="text">
-        <string>Degré n</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="spinVerti">
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>20</number>
-       </property>
       </widget>
      </item>
      <item>
@@ -167,24 +133,7 @@
         <number>1000</number>
        </property>
        <property name="value">
-        <number>5</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="bResetData">
-       <property name="text">
-        <string>Réinitialiser les données</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="bResetCam">
-       <property name="text">
-        <string>Réinitialiser le caméra</string>
-       </property>
-       <property name="checkable">
-        <bool>false</bool>
+        <number>10</number>
        </property>
       </widget>
      </item>
@@ -203,6 +152,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QLabel" name="laTimeCalcSurface">
+       <property name="text">
+        <string>0 us</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -214,6 +173,23 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="bResetData">
+       <property name="text">
+        <string>Réinitialiser les données</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="bResetCam">
+       <property name="text">
+        <string>Réinitialiser le caméra</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="bQuit">
