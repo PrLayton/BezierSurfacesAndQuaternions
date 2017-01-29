@@ -340,15 +340,17 @@ void GLWidget::drawSurfaceBezier()
 				glEnd();*/
 
 				QVector3D light = iAmbiant * kAmbiant * objectColor + /*iDiffuse * objectColor * kDiffuse * cosAngle +*/ iDiffuse * kSpecular * ns;
+				//float white[] = { 1.0, 0, 0};
+				//glColor3fv(white);
 				glColor3fv(convertVector3D(light));
-				glBegin(GL_TRIANGLE_STRIP);
+				glBegin(GL_TRIANGLES);
 			}
 			glVertex3fv(convertVector3D(ptsBezier[i][j]));
+			glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
 			glVertex3fv(convertVector3D(ptsBezier[i + 1][j]));
-			glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
 			glVertex3fv(convertVector3D(ptsBezier[i][j]));
-			glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
 			glVertex3fv(convertVector3D(ptsBezier[i][j + 1]));
+			glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
 			glEnd();
 		}
 	}
