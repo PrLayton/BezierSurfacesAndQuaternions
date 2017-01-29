@@ -153,9 +153,14 @@ void GLWidget::drawScene(QMatrix4x4 mvMatrix)
 	if (showGrid)
 		drawGridandAxes();
 
-	drawPointsMatrix(bezier, QVector3D(255.0f, 255.0f, 255.0f), POINT_SIZE);
-	drawPointsMatrix(surfBezier, QVector3D(0, 255.0f, 0), 5);
 	drawSurfaceBezier();
+	vector<QVector3D> ptlight = { posLight };
+	drawPoints(ptlight, QVector3D(1.0, 1.0, 1.0), 20);
+	if (showPts)
+	{
+		drawPointsMatrix(bezier, QVector3D(1.0, 0, 0), POINT_SIZE);
+		drawPointsMatrix(surfBezier, QVector3D(0, 1.0, 0), 5);
+	}
 }
 
 void GLWidget::generateControlPoints()
@@ -227,67 +232,43 @@ void GLWidget::drawSurfaceBezier()
 {
 	if (precision < 1 || degU < 1 || degV < 1)
 		return;
-	float black[] = { 0.0, 0.0, 0.0 };
-	float white[] = { 1.0, 1.0, 1.0 };
-	float red[] = { 1.0, 0.0, 0.0 };
-	glColor3fv(red);
-	QVector3D posLight = { 0,0,100 };
-	QVector3D normal;
-	iAmbiant = { 1.0,1.0,1.0 };
-	kAmbiant = 0.2;
-	kDiffuse = 0.8;
-	iDiffuse = { 1.0,1.0,1.0 };
 	for (int i = 0; i < precision; i++)
 	{
 		for (int j = 0; j < precision; j++)
 		{
-			//glColor3fv(iAmbiant*kAmbiant);
-			QVector3D u = surfBezier[i + 1][j] - surfBezier[i][j];
-			QVector3D v = surfBezier[i + 1][j + 1] - surfBezier[i][j];
-			QVector3D normal = crossProductNormalized(u, v);
-			/*glColor3fv(red);
-			glBegin(GL_LINES);
-			glVertex3f(surfBezier[i][j].x(), surfBezier[i][j].y(), surfBezier[i][j].z());
-			glVertex3f(normal.x()*100 - surfBezier[i][j].x(), normal.y()*100 - surfBezier[i][j].y(), normal.z()*100 - surfBezier[i][j].z());
-			glEnd();*/
-
-			QVector3D dir = posLight - surfBezier[i][j];
-			float angle = dot(normal, dir)/(sqrt(pow(normal.x(),2)+ pow(normal.y(), 2)+ pow(normal.z(), 2))*sqrt(pow(dir.x(), 2) + pow(dir.y(), 2) + pow(dir.z(), 2)));
-			if (angle <= 0) angle = 0;
-			QVector3D _red = iAmbiant*kAmbiant + iDiffuse*kDiffuse * angle;
-			float __red[] = { _red.x(), _red.y(),_red.z() };
-			glColor3fv(__red);
-
 			if (showWireframe)
-				glBegin(GL_LINE_STRIP);
+			{
+				float white[] = { 1.0, 1.0, 1.0 };
+				glColor3fv(white);
+				glBegin(GL_LINE_LOOP);
+			}
 			else
+			{
+				//glColor3fv(iAmbiant*kAmbiant);
+				QVector3D u = surfBezier[i + 1][j] - surfBezier[i][j];
+				QVector3D v = surfBezier[i + 1][j + 1] - surfBezier[i][j];
+				QVector3D normal = QVector3D::crossProduct(u, v).normalized();
+				/*glColor3fv(red);
+				glBegin(GL_LINES);
+				glVertex3f(surfBezier[i][j].x(), surfBezier[i][j].y(), surfBezier[i][j].z());
+				glVertex3f(normal.x()*100 - surfBezier[i][j].x(), normal.y()*100 - surfBezier[i][j].y(), normal.z()*100 - surfBezier[i][j].z());
+				glEnd();*/
+
+				QVector3D dir = posLight - surfBezier[i][j];
+				float cosAngle = QVector3D::dotProduct(normal, dir) / (normal.length() * dir.length());
+				cosAngle = (cosAngle <= 0) ? 0 : cosAngle;
+				QVector3D light = iAmbiant * kAmbiant + iDiffuse * kDiffuse * cosAngle;
+				glColor3fv(convertVector3D(light));
 				glBegin(GL_TRIANGLE_STRIP);
+			}
 			glVertex3fv(convertVector3D(surfBezier[i][j]));
 			glVertex3fv(convertVector3D(surfBezier[i + 1][j]));
 			glVertex3fv(convertVector3D(surfBezier[i + 1][j + 1]));
-			glVertex3fv(convertVector3D(surfBezier[i][j + 1]));
 			glVertex3fv(convertVector3D(surfBezier[i][j]));
 			glVertex3fv(convertVector3D(surfBezier[i + 1][j + 1]));
+			glVertex3fv(convertVector3D(surfBezier[i][j + 1]));
 			glEnd();
 		}
-		/*
-		bool color = false;
-		glBegin(GL_TRIANGLE_STRIP);
-		for (int vi = 0; vi < precision; vi++) 
-		{
-			if (color)
-				glColor3fv(white);
-			else
-				glColor3fv(black);
-			QVector3D p1 = surfBezier[ui][vi];
-			QVector3D p2 = surfBezier[ui + 1][vi];
-			glVertex3f(p1.x(), p1.y(), p1.z());
-			glVertex3f(p2.x(), p2.y(), p2.z());
-			color = !color;
-		}
-		if (precision % 2 == 1) 
-			color = !color;
-		glEnd();*/
 	}
 }
 

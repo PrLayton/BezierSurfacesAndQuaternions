@@ -44,15 +44,16 @@ signals:
 
 public slots:
 	void timeOutSlot();
+	// Fonctions pour mettre à jour les paramètres de l'UI
 	void setDegreeU(int m) { degU = m; generateControlPoints(); }
 	void setDegreeV(int n) { degV = n; generateControlPoints(); }
 	void setPrecision(int p) { precision = p; generateSurfaceBezier(); }
-	// Fonctions pour mettre à jour les paramètres de l'UI
 	void setGrid(int g) { showGrid = g == 0 ? false : true; }
+	void setShowPts(int s) { showPts = s == 0 ? false : true; }
 	void setWireframe(int e) { showWireframe = e == 0 ? false : true; }
 	// Réinitialiser les données
 	void resetData();
-	// Réinitialiser le caméra au paramètres par défaut
+	// Réinitialiser le caméra à la vue par défaut
 	void resetCamera();
 
 private:
@@ -72,7 +73,7 @@ private:
 	void generateSurfaceBezier();
 	void drawSurfaceBezier();
 
-	// Les paramètres de caméra OPENGL
+	// Paramètres de caméra OPENGL
 	float m_theta;	// Rotation x-axis
 	float m_phi;	// Rotation  y-axis
 	float m_scale;
@@ -85,18 +86,20 @@ private:
 	QPoint tmpRotValue;
 	int screenW;
 	int screenH;
-	QTimer *t_Timer;
-
-	QVector3D iAmbiant;
-	QVector3D iDiffuse;
-	float kAmbiant;
-	float kDiffuse;
-
 	QOpenGLShaderProgram m_shader;
 	QMatrix4x4 m_modelMatrix;
 	QMatrix4x4 m_viewMatrix;
 	QMatrix4x4 m_projectionMatrix;
 
+	// Paramètres des lumières
+	QVector3D posLight = { 0, 0, 300 };
+	QVector3D iAmbiant = { 1.0,1.0,1.0 };
+	QVector3D iDiffuse = { 1.0,1.0,1.0 }; 
+	float kAmbiant = 0.2;
+	float kDiffuse = 0.8;
+
+
+	
 	// Les données
 	vector<QVector3D> points;
 	vector<vector<QVector3D>> bezier, surfBezier;
@@ -110,6 +113,7 @@ private:
 	int depthBetweenPoints = 0;
 	bool needUpdate = false;
 	bool showWireframe = false;
+	bool showPts = false;
 	bool showGrid = false;
 
 	struct ScenePoint 
@@ -120,17 +124,5 @@ private:
 		//ScenePoint(const QVector3D &c, const QVector3D &n);
 	};
 	QVector<ScenePoint> m_data;
-
-	float dot(QVector3D p, QVector3D op) { return p.x()*op.x() + p.y()*op.y() + p.z()*op.z(); } // Produit scalaire de 2 points
-	float norme(QVector3D p) { return float(sqrt(p.x()*p.x() + p.y()*p.y() + p.z()*p.z())); } // Norme du point (longueur du vecteur.)
-	//T angle(Point<T> p) { return acos(static_cast<T>(dot(p) / (norme() * p.norme()))); } // Return l'angle non orienté formé par les 2 vecteurs.
-	QVector3D crossProduct(QVector3D p, QVector3D op) { QVector3D t(p.y()*op.z() - p.z()*op.y(), p.z()*p.x() - p.x()*op.z(), p.x()*op.y() - p.y()*op.x()); return t; } //Produit vectoriel de 2 points.
-	QVector3D normalize(QVector3D p) { float n = norme(p); return QVector3D(p.x() / n, p.y() / n, p.z() / n); } //Normalisation du point.
-	QVector3D crossProductNormalized(QVector3D p, QVector3D op)
-	{
-		QVector3D final;
-		final = crossProduct(p, op);
-		final = normalize(final);
-		return final;
-	}
+	QTimer *t_Timer;
 };
