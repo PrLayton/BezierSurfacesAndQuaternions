@@ -56,12 +56,12 @@ public slots:
 	void resetCamera();
 
 private:
+	// Fonction rendu de la scène
+	void drawScene(QMatrix4x4 mvMatrix);
 	// Conversion de coordonnées d'écran à coordonnées de la scène OPENGL
 	QVector3D convertXY(int X, int Y);
 	// Chercher du point (dans la nuage existante) la plus proche de la souris
 	int findNearestPoint(vector<QVector3D> pts, QPoint p);
-	// Fonction rendu de la scène
-	void drawScene();
 	// Dessiner la grille et les axes
 	void drawGridandAxes();
 	// Dessiner des points
@@ -87,6 +87,16 @@ private:
 	int screenH;
 	QTimer *t_Timer;
 
+	QVector3D iAmbiant;
+	QVector3D iDiffuse;
+	float kAmbiant;
+	float kDiffuse;
+
+	QOpenGLShaderProgram m_shader;
+	QMatrix4x4 m_modelMatrix;
+	QMatrix4x4 m_viewMatrix;
+	QMatrix4x4 m_projectionMatrix;
+
 	// Les données
 	vector<QVector3D> points;
 	vector<vector<QVector3D>> bezier, surfBezier;
@@ -101,4 +111,26 @@ private:
 	bool needUpdate = false;
 	bool showWireframe = false;
 	bool showGrid = false;
+
+	struct ScenePoint 
+	{
+		QVector3D coords;
+		QVector3D normal;
+		ScenePoint() {};
+		//ScenePoint(const QVector3D &c, const QVector3D &n);
+	};
+	QVector<ScenePoint> m_data;
+
+	float dot(QVector3D p, QVector3D op) { return p.x()*op.x() + p.y()*op.y() + p.z()*op.z(); } // Produit scalaire de 2 points
+	float norme(QVector3D p) { return float(sqrt(p.x()*p.x() + p.y()*p.y() + p.z()*p.z())); } // Norme du point (longueur du vecteur.)
+	//T angle(Point<T> p) { return acos(static_cast<T>(dot(p) / (norme() * p.norme()))); } // Return l'angle non orienté formé par les 2 vecteurs.
+	QVector3D crossProduct(QVector3D p, QVector3D op) { QVector3D t(p.y()*op.z() - p.z()*op.y(), p.z()*p.x() - p.x()*op.z(), p.x()*op.y() - p.y()*op.x()); return t; } //Produit vectoriel de 2 points.
+	QVector3D normalize(QVector3D p) { float n = norme(p); return QVector3D(p.x() / n, p.y() / n, p.z() / n); } //Normalisation du point.
+	QVector3D crossProductNormalized(QVector3D p, QVector3D op)
+	{
+		QVector3D final;
+		final = crossProduct(p, op);
+		final = normalize(final);
+		return final;
+	}
 };
