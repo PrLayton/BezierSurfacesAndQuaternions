@@ -98,7 +98,9 @@ private:
 	QVector3D iAmbiant = { 1.0,1.0,1.0 };
 	QVector3D iDiffuse = { 1.0,1.0,1.0 }; 
 	float kAmbiant = 0.2;
-	float kDiffuse = 0.8;
+	float kDiffuse = 0.2;
+	float kSpecular = 0.5;
+	QVector3D objectColor = { 1.0,0.5,0.5 };
 
 
 	// Les données

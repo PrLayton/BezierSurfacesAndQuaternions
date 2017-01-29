@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GLWidget.h"
+#include <GL/glu.h>
 
 // Initialisation de la scène OpenGL
 GLWidget::GLWidget(QWidget *parent) :
@@ -83,8 +84,19 @@ void GLWidget::resizeGL(int width, int height)
 	else
 		glOrtho(-range * m_aspectRatio, range * m_aspectRatio, -range, range, range*4, -range*4);
 
+	//gluLookAt(20,20,20, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	//QGLCamera camera;
+	//gluLookAt(20, 20, 0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	//gluPerspective(60.0f, 1.0*width / height, 0.1f, 100.0f);
+
+	/*glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(70, (float)width / height, 1, 1000);
+	glEnable(GL_DEPTH_TEST);*/
 }
 
 // Fonction mettre à jour de la scène OpenGL
@@ -118,8 +130,33 @@ void GLWidget::paintGL()
 	drawScene(modelViewMatrix);
 
 	glPopMatrix();
+	
 
+	/*glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(0.75, 0.75, 0.75, 0, 0, 0, 0, 0, 1);
 
+	glBegin(GL_QUADS);
+	//carré rouge
+	glColor3ub(255, 0, 0);
+	glVertex3d(1, 0, 0);
+	glVertex3d(1, 1, 0);
+	glVertex3d(1, 1, 1);
+	glVertex3d(1, 0, 1);
+	//carré vert
+	glColor3ub(0, 255, 0);
+	glVertex3d(1, 1, 0);
+	glVertex3d(0, 1, 0);
+	glVertex3d(0, 1, 1);
+	glVertex3d(1, 1, 1);
+	//carré bleu
+	glColor3ub(0, 0, 255);
+	glVertex3d(1, 1, 1);
+	glVertex3d(1, 0, 1);
+	glVertex3d(0, 0, 1);
+	glVertex3d(0, 1, 1);
+	glEnd();*/
 }
 
 // Fonction rendu de la scène
@@ -248,6 +285,12 @@ void GLWidget::generateSurfaceBezier()
 
 void GLWidget::drawSurfaceBezier()
 {
+	glPointSize(3);
+	float t[] = { 200,200,200 };
+	glBegin(GL_POINTS);
+		glVertex3fv(t);
+	glEnd();
+
 	if (precision < 1 || degU < 1 || degV < 1)
 		return;
 	for (int i = 0; i < precision; i++)
@@ -275,7 +318,28 @@ void GLWidget::drawSurfaceBezier()
 				QVector3D dir = posLight - ptsBezier[i][j];
 				float cosAngle = QVector3D::dotProduct(normal, dir) / (normal.length() * dir.length());
 				cosAngle = (cosAngle <= 0) ? 0 : cosAngle;
-				QVector3D light = iAmbiant * kAmbiant + iDiffuse * kDiffuse * cosAngle;
+				QVector3D R = dir - 2 * normal*(QVector3D::dotProduct(normal, dir));
+				float ns = QVector3D::dotProduct(R, ptsBezier[i][j] - QVector3D(200, 200, 200)) /  (R.length() * (ptsBezier[i][j]- QVector3D(200, 200, 200)).length());
+
+				ns = (ns <= 0 || cosAngle <= 0) ? 0 : ns;
+				ns = pow(ns, 32);
+
+				/*float red[] = { 1,0,0 };
+				glColor3fv(red);
+				glBegin(GL_LINES);
+				glVertex3f(ptsBezier[i][j].x(), ptsBezier[i][j].y(), ptsBezier[i][j].z());
+				glVertex3fv(t);
+				glEnd();
+
+				float ble[] = { 0,0,1 };
+				glColor3fv(ble);
+				glBegin(GL_LINES);
+				glVertex3f(ptsBezier[i][j].x(), ptsBezier[i][j].y(), ptsBezier[i][j].z());
+				glVertex3f(ptsBezier[i][j].x() - R.x() * 100, ptsBezier[i][j].y() - R.y() * 100, ptsBezier[i][j].z() - R.z() * 100 );
+
+				glEnd();*/
+
+				QVector3D light = iAmbiant * kAmbiant * objectColor + /*iDiffuse * objectColor * kDiffuse * cosAngle +*/ iDiffuse * kSpecular * ns;
 				glColor3fv(convertVector3D(light));
 				glBegin(GL_TRIANGLE_STRIP);
 			}
