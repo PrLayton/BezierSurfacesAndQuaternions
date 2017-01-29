@@ -213,19 +213,23 @@ void GLWidget::generateControlPoints()
 	default:
 		break;
 	}
-	ptsRotated = ptsControl;
-	emit rotationReset();
+	//ptsRotated = ptsControl;
+	//emit rotationReset();
+	doRotation(rotationValue);
 	generateSurfaceBezier();
 }
 
 void GLWidget::doRotation(QVector3D rot)
 {
+	rotationValue = rot;
 	if (precision < 1 || degU < 1 || degV < 1)
 		return;
 	QQuaternion quat = QQuaternion::fromEulerAngles(rot);
+	ptsRotated.clear();
+	ptsRotated.resize(degU);
 	for (int i = 0; i < degU; i++)
 		for (int j = 0; j < degV; j++)
-			ptsRotated[i][j] = quat.rotatedVector(ptsControl[i][j]);
+			ptsRotated[i].push_back(quat.rotatedVector(ptsControl[i][j]));
 	generateSurfaceBezier();
 }
 

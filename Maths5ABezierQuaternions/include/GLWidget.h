@@ -101,10 +101,10 @@ private:
 	float kDiffuse = 0.8;
 
 
-	
 	// Les données
 	vector<QVector3D> points;
 	vector<vector<QVector3D>> ptsControl, ptsRotated, ptsBezier;
+	QVector3D rotationValue = QVector3D(0, 0, 0);
 	int pointSelected = -1;
 
 	// Les paramètres de l'UI
