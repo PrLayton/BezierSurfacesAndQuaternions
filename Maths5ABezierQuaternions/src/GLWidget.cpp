@@ -271,7 +271,8 @@ void GLWidget::doRotation(QVector3D rot)
 	rotationValue = rot;
 	if (precision < 1 || degU < 1 || degV < 1)
 		return;
-	QQuaternion quat = QQuaternion::fromEulerAngles(rot);
+	Quaternion quat = Quaternion::fromEulerAngles(rot);
+	//QQuaternion quat = QQuaternion::fromEulerAngles(rot);
 	ptsRotated.clear();
 	ptsRotated.resize(degU);
 	for (int i = 0; i < degU; i++)

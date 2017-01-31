@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include "Quaternion.h"
 
 using namespace std;
 
