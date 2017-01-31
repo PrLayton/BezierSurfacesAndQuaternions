@@ -55,3 +55,11 @@ GLfloat* convertVector3D(QVector3D p)
 	temp[2] = p.z();
 	return temp;
 }
+
+QColor convertColor(QVector3D col)
+{
+	int r = (int)(col.x() * 255);
+	int g = (int)(col.y() * 255);
+	int b = (int)(col.z() * 255);
+	return QColor(r, g, b);
+}

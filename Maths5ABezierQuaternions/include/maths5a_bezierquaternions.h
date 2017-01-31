@@ -20,10 +20,12 @@ private slots:
 	void resetData();
 	void updateLabelTimer();
 	void updateStatus();
+	void setColor(int idButton);
 	void quit();
 
 private:
 	Ui::math5a_bezierForm ui;
+	QButtonGroup *bGroup;
 	GLWidget *glScene;
 };
 

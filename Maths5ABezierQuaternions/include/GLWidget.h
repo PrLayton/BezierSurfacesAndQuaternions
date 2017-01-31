@@ -14,6 +14,13 @@ using namespace std;
 
 #define POINT_SIZE 10
 
+struct Light
+{
+	QVector3D posLight;
+	QVector3D iAmbiant;
+	QVector3D iDiffuse;
+};
+
 class GLWidget : public QOpenGLWidget
 {
 	Q_OBJECT
@@ -29,6 +36,7 @@ public:
 	QString labelTimer;
 	QPoint mouse;
 	QVector3D mouseWorld;
+	Light lights[2];
 
 protected:
 	// Les événements Qt de souris et du clavier
@@ -98,18 +106,11 @@ private:
 	QMatrix4x4 m_projectionMatrix;
 
 	// Paramètres des lumières
-	QVector3D posLight1 = { 0, 0, 300 };
-	QVector3D iAmbiant1 = { 1.0,1.0,1.0 };
-	QVector3D iDiffuse1 = { 1.0,1.0,1.0 }; 
 	float kAmbiant = 0.3;
 	float kDiffuse = 0.2;
 	float kSpecular = 0.5;
-	QVector3D posLight2 = { -100, 150, 150 };
-	QVector3D iAmbiant2 = { 0.0,0.0,1.0 };
-	QVector3D iDiffuse2 = { 0.0,0.0,1.0 };
 	QVector3D objectColor = { 1.0,0.6,0.6 };
-	QVector3D processLighting(QVector3D p1Face, QVector3D p2Face, QVector3D p3Face, QVector3D p4Face, QVector3D posLight, QVector3D ambiant, QVector3D diffuse);
-
+	QVector3D processLighting(QVector3D p1Face, QVector3D p2Face, QVector3D p3Face, QVector3D p4Face, Light light);
 	// Les données
 	vector<QVector3D> points;
 	vector<vector<QVector3D>> ptsControl, ptsRotated, ptsBezier;

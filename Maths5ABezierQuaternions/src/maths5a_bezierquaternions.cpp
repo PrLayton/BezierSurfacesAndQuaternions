@@ -30,10 +30,10 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	connect(ui.cbShowWireframe, SIGNAL(stateChanged(int)), glScene, SLOT(setWireframe(int)));
 	connect(ui.cbShowPoints, SIGNAL(stateChanged(int)), glScene, SLOT(setShowPts(int)));
 	connect(ui.cbShowGrid, SIGNAL(stateChanged(int)), glScene, SLOT(setGrid(int)));
-	connect(ui.checkBox_0, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLight1(int)));
-	connect(ui.checkBox_1, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLight2(int)));
-	connect(ui.checkBox_2, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLightDiffuse(int)));
-	connect(ui.checkBox_3, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLightSpecular(int)));
+	connect(ui.cbLight1, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLight1(int)));
+	connect(ui.cbLight2, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLight2(int)));
+	connect(ui.cbDiffuse, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLightDiffuse(int)));
+	connect(ui.cbSpecular, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLightSpecular(int)));
 	connect(ui.bResetData, SIGNAL(clicked()), this, SLOT(resetData()));
 	connect(ui.bResetCam, SIGNAL(clicked()), glScene, SLOT(resetCamera()));
 	connect(ui.bQuit, SIGNAL(clicked()), this, SLOT(quit()));
@@ -45,7 +45,36 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	connect(ui.spinX, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
 	connect(ui.spinY, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
 	connect(ui.spinZ, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
+
+	// Définir la couleur du bouton
+	QColor col = convertColor(glScene->lights[0].iAmbiant);
+	QString qss = QString("background-color: %1").arg(col.name());
+	ui.bColorS1->setStyleSheet(qss);
+	col = convertColor(glScene->lights[1].iAmbiant);
+	qss = QString("background-color: %1").arg(col.name());
+	ui.bColorS2->setStyleSheet(qss);
+	bGroup = new QButtonGroup(this);
+	bGroup->addButton(ui.bColorS1, 0);
+	bGroup->addButton(ui.bColorS2, 1);
+	connect(bGroup, SIGNAL(buttonClicked(int)), this, SLOT(setColor(int)));
 }
+
+void Math5A_Bezier::setColor(int id)
+{
+	QColor initial = convertColor(glScene->lights[id].iAmbiant);
+	QColor col = QColorDialog::getColor(initial, this);
+	if (col.isValid())
+	{
+		QString qss = QString("background-color: %1").arg(col.name());
+		if (id)
+			ui.bColorS2->setStyleSheet(qss);
+		else
+			ui.bColorS1->setStyleSheet(qss);
+		glScene->lights[id].iAmbiant = QVector3D(col.red() / 255.0, col.green() / 255.0, col.blue() / 255.0);;
+		glScene->lights[id].iDiffuse = glScene->lights[id].iAmbiant;
+	}
+}
+
 
 // Mettre à jour le mode de génération des points de contrôle
 void Math5A_Bezier::setModeGenerationPoints()

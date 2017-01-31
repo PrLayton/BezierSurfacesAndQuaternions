@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1111</width>
-    <height>722</height>
+    <height>740</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -138,6 +138,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QLabel" name="laTimeCalcSurface">
+       <property name="text">
+        <string>0 us</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QGroupBox" name="groupRotation">
        <property name="title">
         <string>Rotation</string>
@@ -207,55 +217,65 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="laTimeCalcSurface">
-       <property name="text">
-        <string>0 us</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QTabWidget" name="tabWidget">
-       <widget class="QWidget" name="tab">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="tabLight">
         <attribute name="title">
-         <string>Tab 1</string>
+         <string>Lumières</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_4">
-         <item>
-          <widget class="QCheckBox" name="checkBox_0">
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="cbLight1">
            <property name="text">
             <string>Source 1</string>
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox_1">
-           <property name="text">
-            <string>Source 2</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox_2">
-           <property name="text">
-            <string>Diffuse</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox_3">
+         <item row="3" column="0">
+          <widget class="QCheckBox" name="cbSpecular">
            <property name="text">
             <string>Specular</string>
            </property>
           </widget>
          </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="cbLight2">
+           <property name="text">
+            <string>Source 2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="cbDiffuse">
+           <property name="text">
+            <string>Diffuse</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="bColorS2">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QPushButton" name="bColorS1">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tab_2">
+       <widget class="QWidget" name="tabColor">
         <attribute name="title">
-         <string>Tab 2</string>
+         <string>Couleurs</string>
         </attribute>
        </widget>
       </widget>

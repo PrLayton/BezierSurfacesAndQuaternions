@@ -18,6 +18,12 @@ GLWidget::GLWidget(QWidget *parent) :
 	setFocusPolicy(Qt::StrongFocus);
 	m_scale = 1;
 	m_incrementScale = 1;
+	lights[0].posLight = { 0, 0, 300 };
+	lights[0].iAmbiant = { 1.0,1.0,1.0 };
+	lights[0].iDiffuse = { 1.0,1.0,1.0 };
+	lights[1].posLight = { -100, 150, 150 };
+	lights[1].iAmbiant = { 0.0,0.0,1.0 };
+	lights[1].iDiffuse = { 0.0,0.0,1.0 };
 }
 
 GLWidget::~GLWidget()
@@ -193,10 +199,10 @@ void GLWidget::drawScene(QMatrix4x4 mvMatrix)
 		drawGridandAxes();
 
 	drawSurfaceBezier();
-	vector<QVector3D> ptlight = { posLight1 };
-	vector<QVector3D> ptlight2 = { posLight2 };
-	drawPoints(ptlight, QVector3D(1.0, 1.0, 1.0), 20);
-	drawPoints(ptlight2, QVector3D(0.0, 0.0, 1.0), 20);
+	vector<QVector3D> ptlight = { lights[0].posLight };
+	vector<QVector3D> ptlight2 = { lights[1].posLight };
+	drawPoints(ptlight, lights[0].iAmbiant, 20);
+	drawPoints(ptlight2, lights[1].iAmbiant, 20);
 	if (showPts)
 	{
 		drawPointsMatrix(ptsRotated, QVector3D(1.0, 0, 0), POINT_SIZE);
@@ -313,18 +319,14 @@ void GLWidget::drawSurfaceBezier()
 				QVector3D red = { 1.0f, 0.6f, 0.6f};
 				QVector3D light1 = { 0.0f, 0.f, 0.f };
 				QVector3D light2 = { 0.0f, 0.f, 0.f };
-				if (showLight1) {
-					light1 = processLighting(ptsBezier[i][j], ptsBezier[i + 1][j], ptsBezier[i][j + 1], ptsBezier[i + 1][j + 1], posLight1, iAmbiant1, iDiffuse1);
-				}
-				if (showLight2) {
-					light2 = processLighting(ptsBezier[i][j], ptsBezier[i + 1][j], ptsBezier[i][j + 1], ptsBezier[i + 1][j + 1], posLight2, iAmbiant2, iDiffuse2);
-				}
-				if (showLight1 || showLight2) {
+				if (showLight1)
+					light1 = processLighting(ptsBezier[i][j], ptsBezier[i + 1][j], ptsBezier[i][j + 1], ptsBezier[i + 1][j + 1], lights[0]);
+				if (showLight2)
+					light2 = processLighting(ptsBezier[i][j], ptsBezier[i + 1][j], ptsBezier[i][j + 1], ptsBezier[i + 1][j + 1], lights[1]);
+				if (showLight1 || showLight2)
 					glColor3fv(convertVector3D(light1 + light2));
-				}
-				else {
+				else
 					glColor3fv(convertVector3D(red));
-				}
 				//glColor4f(1.0f, 1.0f, 1.0f, 0.5);
 				glBegin(GL_TRIANGLES);
 			}
@@ -339,8 +341,8 @@ void GLWidget::drawSurfaceBezier()
 	}
 }
 
-QVector3D GLWidget::processLighting(QVector3D p1Face, QVector3D p2Face, QVector3D p3Face, QVector3D p4Face, QVector3D posLight, QVector3D ambiant, QVector3D diffuse) {
-
+QVector3D GLWidget::processLighting(QVector3D p1Face, QVector3D p2Face, QVector3D p3Face, QVector3D p4Face, Light light) 
+{
 	//glColor3fv(iAmbiant*kAmbiant);
 
 	QVector3D u = p2Face - p1Face;
@@ -353,7 +355,7 @@ QVector3D GLWidget::processLighting(QVector3D p1Face, QVector3D p2Face, QVector3
 	glVertex3f(normal.x()*100 - surfBezier[i][j].x(), normal.y()*100 - surfBezier[i][j].y(), normal.z()*100 - surfBezier[i][j].z());
 	glEnd();*/
 
-	QVector3D dir = posLight - p1Face;
+	QVector3D dir = light.posLight - p1Face;
 	float cosAngle = QVector3D::dotProduct(normal, dir) / (normal.length() * dir.length());
 	cosAngle = (cosAngle <= 0) ? 0 : cosAngle;
 	QVector3D R = dir - 2 * normal*(QVector3D::dotProduct(normal, dir));
@@ -380,24 +382,19 @@ QVector3D GLWidget::processLighting(QVector3D p1Face, QVector3D p2Face, QVector3
 	float ior = 1.517f;
 	QVector3D refraction;
 	float k = 1.0 - ior * ior * (1.0 - QVector3D::dotProduct(normal, dir) * QVector3D::dotProduct(normal, dir));
-	if (k < 0.0) {
+	if (k < 0.0)
 		R = { 0,0,0 };
-	}
 	else
-	{
 		R = ior * dir - (ior * QVector3D::dotProduct(normal, dir) + sqrt(k)) * normal;
-	}
 
-	QVector3D light = ambiant * kAmbiant * objectColor;
+	QVector3D l = light.iAmbiant * kAmbiant * objectColor;
 
-	if (showLightDiffuse) {
-		light += diffuse * objectColor * kDiffuse * cosAngle;
-	}
-	if (showLightSpecular){
-		light += diffuse * kSpecular * ns;
-	}
+	if (showLightDiffuse)
+		l += light.iDiffuse * objectColor * kDiffuse * cosAngle;
+	if (showLightSpecular)
+		l += light.iDiffuse * kSpecular * ns;
 
-	return light;
+	return l;
 }
 
 // Dessiner des points
