@@ -53,6 +53,10 @@ public slots:
 	void setGrid(int g) { showGrid = g == 0 ? false : true; }
 	void setShowPts(int s) { showPts = s == 0 ? false : true; }
 	void setWireframe(int e) { showWireframe = e == 0 ? false : true; }
+	void setShowLight1(int h) { showLight1 = h == 0 ? false : true; }
+	void setShowLight2(int h) { showLight2 = h == 0 ? false : true; }
+	void setShowLightDiffuse(int i) { showLightDiffuse = i == 0 ? false : true; }
+	void setShowLightSpecular(int i) { showLightSpecular = i == 0 ? false : true; }
 	// Réinitialiser les données
 	void resetData();
 	// Réinitialiser le caméra à la vue par défaut
@@ -94,14 +98,17 @@ private:
 	QMatrix4x4 m_projectionMatrix;
 
 	// Paramètres des lumières
-	QVector3D posLight = { 0, 0, 200 };
-	QVector3D iAmbiant = { 1.0,1.0,1.0 };
-	QVector3D iDiffuse = { 1.0,1.0,1.0 }; 
-	float kAmbiant = 0.2;
+	QVector3D posLight1 = { 0, 0, 300 };
+	QVector3D iAmbiant1 = { 1.0,1.0,1.0 };
+	QVector3D iDiffuse1 = { 1.0,1.0,1.0 }; 
+	float kAmbiant = 0.3;
 	float kDiffuse = 0.2;
 	float kSpecular = 0.5;
-	QVector3D objectColor = { 1.0,0.5,0.5 };
-
+	QVector3D posLight2 = { -100, 150, 150 };
+	QVector3D iAmbiant2 = { 0.0,0.0,1.0 };
+	QVector3D iDiffuse2 = { 0.0,0.0,1.0 };
+	QVector3D objectColor = { 1.0,0.6,0.6 };
+	QVector3D processLighting(QVector3D p1Face, QVector3D p2Face, QVector3D p3Face, QVector3D p4Face, QVector3D posLight, QVector3D ambiant, QVector3D diffuse);
 
 	// Les données
 	vector<QVector3D> points;
@@ -119,6 +126,10 @@ private:
 	bool showWireframe = false;
 	bool showPts = false;
 	bool showGrid = false;
+	bool showLight1 = false;
+	bool showLightDiffuse = false;
+	bool showLight2 = false;
+	bool showLightSpecular = false;
 
 	struct ScenePoint 
 	{

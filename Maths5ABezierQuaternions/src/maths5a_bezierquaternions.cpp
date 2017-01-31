@@ -30,6 +30,10 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	connect(ui.cbShowWireframe, SIGNAL(stateChanged(int)), glScene, SLOT(setWireframe(int)));
 	connect(ui.cbShowPoints, SIGNAL(stateChanged(int)), glScene, SLOT(setShowPts(int)));
 	connect(ui.cbShowGrid, SIGNAL(stateChanged(int)), glScene, SLOT(setGrid(int)));
+	connect(ui.checkBox_0, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLight1(int)));
+	connect(ui.checkBox_1, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLight2(int)));
+	connect(ui.checkBox_2, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLightDiffuse(int)));
+	connect(ui.checkBox_3, SIGNAL(stateChanged(int)), glScene, SLOT(setShowLightSpecular(int)));
 	connect(ui.bResetData, SIGNAL(clicked()), this, SLOT(resetData()));
 	connect(ui.bResetCam, SIGNAL(clicked()), glScene, SLOT(resetCamera()));
 	connect(ui.bQuit, SIGNAL(clicked()), this, SLOT(quit()));
