@@ -61,6 +61,7 @@ public slots:
 	void setGrid(int g) { showGrid = g == 0 ? false : true; }
 	void setShowPts(int s) { showPts = s == 0 ? false : true; }
 	void setWireframe(int e) { showWireframe = e == 0 ? false : true; }
+	void setShowTexture(int g) { showTexture = g == 0 ? false : true; }
 	void setShowLight1(int h) { showLight1 = h == 0 ? false : true; }
 	void setShowLight2(int h) { showLight2 = h == 0 ? false : true; }
 	void setShowLightDiffuse(int i) { showLightDiffuse = i == 0 ? false : true; }
@@ -86,6 +87,8 @@ private:
 	void generateControlPoints();
 	void generateSurfaceBezier();
 	void drawSurfaceBezier();
+	// Textures
+	void GLWidget::LoadGLTextures(const char * name);
 
 	// Paramètres de caméra OPENGL
 	float m_theta;	// Rotation x-axis
@@ -109,6 +112,7 @@ private:
 	float kAmbiant = 0.3;
 	float kDiffuse = 0.2;
 	float kSpecular = 0.5;
+	//QVector3D objectColor = { 1.0,1.0,1.0 };
 	QVector3D objectColor = { 1.0,0.6,0.6 };
 	QVector3D processLighting(QVector3D p1Face, QVector3D p2Face, QVector3D p3Face, QVector3D p4Face, Light light);
 	// Les données
@@ -116,9 +120,10 @@ private:
 	vector<vector<QVector3D>> ptsControl, ptsRotated, ptsBezier;
 	QVector3D rotationValue = QVector3D(0, 0, 0);
 	int pointSelected = -1;
+	GLuint texture[1];
 
 	// Les paramètres de l'UI
-	int modeGenPts = 1;		// 1 pour Aléatoire, 2 pour réglage de l'hauteur
+	int modeGenPts = 2;		// 1 pour Aléatoire, 2 pour réglage de l'hauteur
 	int degU = 0;
 	int degV = 0;
 	int precision = 10;
@@ -127,6 +132,7 @@ private:
 	bool showWireframe = false;
 	bool showPts = false;
 	bool showGrid = false;
+	bool showTexture = false;
 	bool showLight1 = false;
 	bool showLightDiffuse = false;
 	bool showLight2 = false;

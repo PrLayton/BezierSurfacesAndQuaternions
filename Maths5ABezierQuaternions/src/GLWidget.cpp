@@ -66,6 +66,8 @@ void GLWidget::initializeGL()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	range = 100.0;
 
+	LoadGLTextures("grass1.jpg");
+
 	m_shader.addShaderFromSourceCode(QOpenGLShader::Vertex, "VertexShader.vs");
 	m_shader.addShaderFromSourceCode(QOpenGLShader::Fragment, "FragmentShader.fs");
 	m_shader.link();
@@ -199,6 +201,7 @@ void GLWidget::drawScene(QMatrix4x4 mvMatrix)
 		drawGridandAxes();
 
 	drawSurfaceBezier();
+
 	vector<QVector3D> ptlight = { lights[0].posLight };
 	vector<QVector3D> ptlight2 = { lights[1].posLight };
 	drawPoints(ptlight, lights[0].iAmbiant, 20);
@@ -294,6 +297,25 @@ void GLWidget::generateSurfaceBezier()
 	emit labelChanged();
 }
 
+void GLWidget::LoadGLTextures(const char * name)
+{
+	QImage img;
+
+	if (!img.load(name)) {
+		std::cerr << "ERROR in loading image" << std::endl;
+	}
+
+	QImage t = QGLWidget::convertToGLFormat(img);
+
+	glGenTextures(1, &texture[0]);
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, t.width(), t.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, t.bits());
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void GLWidget::drawSurfaceBezier()
 {
 	glPointSize(3);
@@ -301,6 +323,11 @@ void GLWidget::drawSurfaceBezier()
 	glBegin(GL_POINTS);
 		glVertex3fv(t);
 	glEnd();
+	
+	if (showTexture) {
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, texture[0]);
+	}
 
 	if (precision < 1 || degU < 1 || degV < 1)
 		return;
@@ -331,15 +358,31 @@ void GLWidget::drawSurfaceBezier()
 				//glColor4f(1.0f, 1.0f, 1.0f, 0.5);
 				glBegin(GL_TRIANGLES);
 			}
-			glVertex3fv(convertVector3D(ptsBezier[i][j]));
-			glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
-			glVertex3fv(convertVector3D(ptsBezier[i + 1][j]));
-			glVertex3fv(convertVector3D(ptsBezier[i][j]));
-			glVertex3fv(convertVector3D(ptsBezier[i][j + 1]));
-			glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
+
+			// Coordonnées des points avec coordonnées de la texture
+			if (showTexture) {
+				glTexCoord2f(0.0f, 0.0f);  glVertex3fv(convertVector3D(ptsBezier[i][j]));
+				glTexCoord2f(1.0f, 1.0f);  glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
+				glTexCoord2f(1.0f, 0.0f);  glVertex3fv(convertVector3D(ptsBezier[i + 1][j]));
+				glTexCoord2f(0.0f, 0.0f);  glVertex3fv(convertVector3D(ptsBezier[i][j]));
+				glTexCoord2f(0.0f, 1.0f);  glVertex3fv(convertVector3D(ptsBezier[i][j + 1]));
+				glTexCoord2f(1.0f, 1.0f);  glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
+			}
+			else
+			{
+				glVertex3fv(convertVector3D(ptsBezier[i][j]));
+				glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
+				glVertex3fv(convertVector3D(ptsBezier[i + 1][j]));
+				glVertex3fv(convertVector3D(ptsBezier[i][j]));
+				glVertex3fv(convertVector3D(ptsBezier[i][j + 1]));
+				glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
+			}
+
 			glEnd();
 		}
 	}
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 QVector3D GLWidget::processLighting(QVector3D p1Face, QVector3D p2Face, QVector3D p3Face, QVector3D p4Face, Light light) 

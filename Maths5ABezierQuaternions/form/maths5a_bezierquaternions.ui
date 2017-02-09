@@ -63,7 +63,7 @@
            <string>Aléatoire</string>
           </property>
           <property name="checked">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -71,6 +71,9 @@
          <widget class="QRadioButton" name="rbAdjust">
           <property name="text">
            <string>Réglage de l'hauteur</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -203,6 +206,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="cbShowTexture">
+       <property name="text">
+        <string>Texture</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QCheckBox" name="cbShowPoints">
        <property name="text">
         <string>Afficher les points</string>
@@ -212,7 +222,7 @@
      <item>
       <widget class="QCheckBox" name="cbShowGrid">
        <property name="text">
-        <string>Afficher la grille et les axes</string>
+        <string>Grille et les axes</string>
        </property>
       </widget>
      </item>
