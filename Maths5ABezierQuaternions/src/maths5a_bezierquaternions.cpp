@@ -19,13 +19,17 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	shortcut = new QShortcut(QKeySequence("Ctrl+D"), this);
 	QObject::connect(shortcut, SIGNAL(activated()), this, SLOT(resetData()));
 
-	// Signal depuis le GLWidget
-	connect(glScene, SIGNAL(labelChanged()), this, SLOT(updateLabelTimer()));
-	connect(glScene, SIGNAL(mouseMoved()), this, SLOT(updateStatus()));
-	
 	// Connect signals aux éléments de l'UI
+	// Interface génération des points
 	connect(ui.rbRandom, SIGNAL(clicked()), this, SLOT(setModeGenerationPoints()));
 	connect(ui.rbAdjust, SIGNAL(clicked()), this, SLOT(setModeGenerationPoints()));
+	connect(ui.spinHori, SIGNAL(valueChanged(int)), glScene, SLOT(setDegreeU(int)));
+	connect(ui.spinVerti, SIGNAL(valueChanged(int)), glScene, SLOT(setDegreeV(int)));
+	connect(ui.spinPrecision, SIGNAL(valueChanged(int)), glScene, SLOT(setPrecision(int)));
+	connect(ui.spinJoinOrder, SIGNAL(valueChanged(int)), glScene, SLOT(setJoinOrder(int)));
+	connect(ui.bJoin, SIGNAL(clicked()), glScene, SLOT(generateJoinPatch()));
+	connect(ui.bCancelJoin, SIGNAL(clicked()), glScene, SLOT(cancelJoin()));
+	// Interface lumières + traçage
 	connect(ui.cbShowWireframe, SIGNAL(stateChanged(int)), glScene, SLOT(setWireframe(int)));
 	connect(ui.cbShowPoints, SIGNAL(stateChanged(int)), glScene, SLOT(setShowPts(int)));
 	connect(ui.cbShowGrid, SIGNAL(stateChanged(int)), glScene, SLOT(setGrid(int)));
@@ -37,22 +41,6 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	connect(ui.bResetData, SIGNAL(clicked()), this, SLOT(resetData()));
 	connect(ui.bResetCam, SIGNAL(clicked()), glScene, SLOT(resetCamera()));
 	connect(ui.bQuit, SIGNAL(clicked()), this, SLOT(quit()));
-
-	// Bézier
-	connect(ui.spinHori, SIGNAL(valueChanged(int)), glScene, SLOT(setDegreeU(int)));
-	connect(ui.spinVerti, SIGNAL(valueChanged(int)), glScene, SLOT(setDegreeV(int)));
-	connect(ui.spinPrecision, SIGNAL(valueChanged(int)), glScene, SLOT(setPrecision(int)));
-	connect(ui.spinJoinOrder, SIGNAL(valueChanged(int)), glScene, SLOT(setJoinOrder(int)));
-	connect(ui.bJoin, SIGNAL(clicked()), glScene, SLOT(generateJoinPatch()));
-	connect(ui.bCancelJoin, SIGNAL(clicked()), glScene, SLOT(cancelJoin()));
-
-	// Rotation Quaternion
-	connect(ui.rbRotObj, SIGNAL(clicked()), this, SLOT(setModeRotation()));
-	connect(ui.rbRotCam, SIGNAL(clicked()), this, SLOT(setModeRotation()));
-	connect(ui.spinX, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
-	connect(ui.spinY, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
-	connect(ui.spinZ, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
-	
 	// Définir la couleur des boutons et leur signal
 	QColor col = convertColor(glScene->objectColor);
 	QString qss = QString("background-color: %1").arg(col.name());
@@ -68,8 +56,18 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	bGroup->addButton(ui.bColorS2, 1);
 	bGroup->addButton(ui.bColorObj, 2);
 	connect(bGroup, SIGNAL(buttonClicked(int)), this, SLOT(setColor(int)));
+	// Rotation Quaternion
+	connect(ui.rbRotObj, SIGNAL(clicked()), this, SLOT(setModeRotation()));
+	connect(ui.rbRotCam, SIGNAL(clicked()), this, SLOT(setModeRotation()));
+	connect(ui.spinX, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
+	connect(ui.spinY, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
+	connect(ui.spinZ, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
+	// Signal depuis le GLWidget
+	connect(glScene, SIGNAL(labelChanged()), this, SLOT(updateLabelTimer()));
+	connect(glScene, SIGNAL(mouseMoved()), this, SLOT(updateStatus()));
 }
 
+// Choisir la couleur et changer celle du bouton correspondant
 void Math5A_Bezier::setColor(int id)
 {
 	QColor initial;
@@ -114,27 +112,25 @@ void Math5A_Bezier::setModeRotation()
 {
 	if (ui.rbRotObj->isChecked())
 	{
-		glScene->setModeRotation(0);
 		ui.spinX->setValue(glScene->rotObj.x());
 		ui.spinY->setValue(glScene->rotObj.y());
 		ui.spinZ->setValue(glScene->rotObj.z());
 	}
 	else if (ui.rbRotCam->isChecked())
 	{
-		glScene->setModeRotation(1);
 		ui.spinX->setValue(glScene->rotCam.x());
 		ui.spinY->setValue(glScene->rotCam.y());
 		ui.spinZ->setValue(glScene->rotCam.z());
 	}
 }
 
-// Mettre à jour la rotation des points de contrôle
+// Mettre à jour les valeurs de rotation
 void Math5A_Bezier::setRotation()
 {
 	double rotX = ui.spinX->value();
 	double rotY = ui.spinY->value();
 	double rotZ = ui.spinZ->value();
-	glScene->doRotation(QVector3D(rotX, rotY, rotZ));
+	glScene->doRotation(QVector3D(rotX, rotY, rotZ), ui.rbRotObj->isChecked());
 }
 
 // Remise la rotation UI à 0
@@ -160,7 +156,7 @@ void Math5A_Bezier::updateLabelTimer()
 	ui.laTimeCalcSurface->setText(glScene->labelTimer);
 }
 
-// Mettre à jour la position de la souris et des polygones dans le status bar
+// Mettre à jour la position de la souris dans le status bar
 void Math5A_Bezier::updateStatus()
 {
 	ui.statusBar->showMessage((QString("Screen (%1,%2) - World (%3,%4)")

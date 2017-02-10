@@ -35,6 +35,7 @@ vector<vector<QVector3D>> calcSurfaceBezier(vector<vector<QVector3D>> pts, int p
 	return curvePoints;
 }
 
+// Génération aléatoire d'un nombre entier dans l'intervalle donnée
 int randomGeneration(int min, int max)
 {
 	// the random device that will seed the generator
@@ -47,6 +48,7 @@ int randomGeneration(int min, int max)
 	return dist(engine);
 }
 
+// Convertir la classe QVector3D pour utiliser avec les fonctions OpenGL
 void glVector3D(QVector3D p, bool vertex)
 {
 	GLfloat *temp = new GLfloat[3];
@@ -60,17 +62,11 @@ void glVector3D(QVector3D p, bool vertex)
 	delete[] temp;
 }
 
+// Convertir les couleurs entre valeurs entières et normalisées
 QColor convertColor(QVector3D col)
 {
 	int r = (int)(col.x() * 255);
 	int g = (int)(col.y() * 255);
 	int b = (int)(col.z() * 255);
 	return QColor(r, g, b);
-}
-
-void clearMatrixPoints(vector<vector<QVector3D>> &pts)
-{
-	for (int i = 0; i < pts.size(); i++)
-		pts[i].clear();
-	pts.clear();	
 }
