@@ -54,7 +54,7 @@ void GLWidget::initializeGL()
 	range = 100.0;
 
 	// Chargement de la texture
-	LoadGLTextures("grass1.jpg");
+	LoadGLTextures("texture.jpg");
 }
 
 // Redimensionner de la scène pour adapter à la fenêtre principale
@@ -441,13 +441,6 @@ QVector3D GLWidget::processLighting(QVector3D p1Face, QVector3D p2Face, QVector3
 	QVector3D u = p2Face - p1Face;
 	QVector3D v = p4Face - p1Face;
 	QVector3D normal = QVector3D::crossProduct(u, v).normalized();
-
-	/*glColor3fv(red);
-	glBegin(GL_LINES);
-	glVertex3f(surfBezier[i][j].x(), surfBezier[i][j].y(), surfBezier[i][j].z());
-	glVertex3f(normal.x()*100 - surfBezier[i][j].x(), normal.y()*100 - surfBezier[i][j].y(), normal.z()*100 - surfBezier[i][j].z());
-	glEnd();*/
-
 	QVector3D dir = light.posLight - p1Face;
 	float cosAngle = QVector3D::dotProduct(normal, dir) / (normal.length() * dir.length());
 	cosAngle = (cosAngle <= 0) ? 0 : cosAngle;
@@ -456,21 +449,6 @@ QVector3D GLWidget::processLighting(QVector3D p1Face, QVector3D p2Face, QVector3
 
 	ns = (ns <= 0 || cosAngle <= 0) ? 0 : ns;
 	ns = pow(ns, 32);
-
-	/*float red[] = { 1,0,0 };
-	glColor3fv(red);
-	glBegin(GL_LINES);
-	glVertex3f(p1Face.x(), p1Face.y(), p1Face.z());
-	glVertex3fv(t);
-	glEnd();
-
-	float ble[] = { 0,0,1 };
-	glColor3fv(ble);
-	glBegin(GL_LINES);
-	glVertex3f(p1Face.x(), p1Face.y(), p1Face.z());
-	glVertex3f(p1Face.x() - R.x() * 100, p1Face.y() - R.y() * 100, p1Face.z() - R.z() * 100 );
-
-	glEnd();*/
 
 	float ior = 1.517f;
 	QVector3D refraction;
@@ -504,7 +482,7 @@ void GLWidget::drawPoints(vector<QVector3D> pts, QVector3D color, int ptSize)
 	glEnd();
 }
 
-// Dessiner des points
+// Dessiner d'un réseau des points
 void GLWidget::drawPointsMatrix(vector<vector<QVector3D>> pts, QVector3D color, int ptSize)
 {
 	if (pts.size() == 0 || pts[0].size() == 0)
@@ -609,6 +587,7 @@ void GLWidget::keyPressEvent(QKeyEvent* e)
 	}
 }
 
+// Contrôle molette pour zoomer
 void GLWidget::wheelEvent(QWheelEvent * event)
 {	  
 	m_incrementScale += event->delta() / 120;
