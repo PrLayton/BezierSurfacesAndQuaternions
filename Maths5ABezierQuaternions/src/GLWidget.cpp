@@ -3,11 +3,7 @@
 #include <GL/glu.h>
 
 // Initialisation de la scène OpenGL
-GLWidget::GLWidget(QWidget *parent) :
-	QOpenGLWidget(parent), 
-	m_theta(180.0f),
-	m_phi(0.0f),
-	m_aspectRatio(1.0)
+GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), m_theta(180.0f), m_phi(0.0f), m_aspectRatio(1.0)
 {
 	int seconde = 1000; // 1 seconde = 1000 ms
 	int timerInterval = seconde / 60;
@@ -16,16 +12,20 @@ GLWidget::GLWidget(QWidget *parent) :
 	t_Timer->start(timerInterval);
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
+
+	// Scale de la scène (zoom)
 	m_scale = 1;
 	m_incrementScale = 1;
+	// Position des deux lumières et couleurs ambiant et diffuse
 	lights[0].posLight = { 0, 0, 300 };
 	lights[0].iAmbiant = { 1.0,1.0,1.0 };
 	lights[0].iDiffuse = { 1.0,1.0,1.0 };
 	lights[1].posLight = { -100, 150, 150 };
 	lights[1].iAmbiant = { 1.0,0.0,1.0 };
-	lights[1].iDiffuse = { 0.0,0.0,1.0 };
+	lights[1].iDiffuse = { 1.0,0.0,1.0 };
 }
 
+// A la suppression du programme
 GLWidget::~GLWidget()
 {
 	delete[] t_Timer;
@@ -40,21 +40,7 @@ void GLWidget::timeOutSlot()
 // Initialisation du module OpenGL
 void GLWidget::initializeGL()
 {
-	/*QOpenGLShader vertexShader(QOpenGLShader::Vertex);
-	QByteArray code = "uniform vec4 color;\n"
-		"uniform highp mat4 matrix;\n"
-		"void main(void) { gl_Position = gl_Vertex*matrix; }";
-	vertexShader.compileSourceCode(code);
-
-	QOpenGLShader fragmentShader(QOpenGLShader::Fragment);
-	code = "uniform vec4 color;\n"
-		"void main(void) { gl_FragColor = color; }";
-	fragmentShader.compileSourceCode(code);
-
-	program.addShader(&vertexShader);
-	program.addShader(&fragmentShader);
-	program.link();*/
-
+	// Initialisation des proprietes OpenGL du programme
 	glClearColor(0, 0, 0, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -63,13 +49,12 @@ void GLWidget::initializeGL()
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// Angle de la camera
 	range = 100.0;
 
+	// Chargement de la texture
 	LoadGLTextures("grass1.jpg");
-
-	m_shader.addShaderFromSourceCode(QOpenGLShader::Vertex, "VertexShader.vs");
-	m_shader.addShaderFromSourceCode(QOpenGLShader::Fragment, "FragmentShader.fs");
-	m_shader.link();
 }
 
 // Redimensionner de la scène pour adapter à la fenêtre principale
@@ -86,45 +71,26 @@ void GLWidget::resizeGL(int width, int height)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
+	// Définition de la matrice orthogonale de la camera
 	m_aspectRatio = double(width) / double(height);
-	//gluOrtho2D(0, width, height, 0);
 	if (width <= height)
 		glOrtho(-range, range, -range / m_aspectRatio, range / m_aspectRatio, range*4, -range*4);
 	else
 		glOrtho(-range * m_aspectRatio, range * m_aspectRatio, -range, range, range*4, -range*4);
 
-	//gluLookAt(20,20,20, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	//QGLCamera camera;
-	//gluLookAt(20, 20, 0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-
-	//gluPerspective(60.0f, 1.0*width / height, 0.1f, 100.0f);
-
-	/*glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(70, (float)width / height, 1, 1000);
-	glEnable(GL_DEPTH_TEST);*/
 }
 
 // Fonction mettre à jour de la scène OpenGL
 void GLWidget::paintGL()
 {
-	/*m_projectionMatrix.setToIdentity();
-	qreal
-		ratio = qreal(window()->width()) / qreal(window()->height());
-	m_projectionMatrix.perspective(90, ratio, 0.5, 40);
-	m_viewMatrix.setToIdentity();
-	QVector3D eye = QVector3D(0, 0, 2);
-	QVector3D center = QVector3D(0, 0, 0);
-	QVector3D up = QVector3D(0, 1, 0);
-	m_viewMatrix.lookAt(eye, center, up);
-	*/
+	// Matrice de dessin de la camera
 	m_modelMatrix.setToIdentity();
 	m_modelMatrix.rotate(45, 0, 1, 0);
 	QMatrix4x4 modelViewMatrix = m_viewMatrix*m_modelMatrix;
 
+	// Nettoyage des buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glColor3f(1.0f, 0.0f, 0.0f);
@@ -144,58 +110,50 @@ void GLWidget::paintGL()
 // Fonction rendu de la scène
 void GLWidget::drawScene(QMatrix4x4 mvMatrix)
 {
-	/*m_shader.bind();
-	m_shader.setAttributeArray("Vertex", GL_FLOAT, m_data.constData(), 3, sizeof(ScenePoint));
-	m_shader.enableAttributeArray("Vertex");
-	m_shader.setAttributeArray("Normal", GL_FLOAT, &m_data[0].normal, 3, sizeof(ScenePoint));
-	m_shader.enableAttributeArray("Normal");
-	m_shader.setUniformValue("material.ka", QVector3D(0.1, 0, 0.0));
-	m_shader.setUniformValue("material.kd", QVector3D(0.7, 0.0, 0.0));
-	m_shader.setUniformValue("material.ks", QVector3D(1.0, 1.0, 1.0));
-	m_shader.setUniformValue("material.shininess", 128.0f);
-	m_shader.setUniformValue("light.position", QVector3D(2, 1, 1));
-	m_shader.setUniformValue("material.shininess", QVector3D(1,1,1));
-
-	m_shader.setUniformValue("projectionMatrix", m_projectionMatrix);
-	m_shader.setUniformValue("modelViewMatrix", mvMatrix);
-	m_shader.setUniformValue("mvpMatrix", m_projectionMatrix*mvMatrix);
-	m_shader.setUniformValue("normalMatrix", mvMatrix.normalMatrix());
-
-	glDrawArrays(GL_TRIANGLES, 0, 6);*/
-
-	/*QMatrix4x4 m = { 10,0,0,0, 0,10,0,0, 0,0,10,0, 0,0,0,10};
-	QColor color = Qt::red;
-	program.setUniformValue("matrix", m);
-	program.setUniformValue("color", color);*/
-
 	// Afficher la grille et les Axes dans la scène
 	if (showGrid)
 		drawGridandAxes();
 
+	// Dessin de la surface de Bezier
 	drawSurfaceBezier();
+
+	// On passe la posiiton des lights
 	vector<QVector3D> ptlight = { lights[0].posLight };
 	vector<QVector3D> ptlight2 = { lights[1].posLight };
+	// Dessin de la représentation des lights (points)
 	drawPoints(ptlight, lights[0].iAmbiant, 20);
 	drawPoints(ptlight2, lights[1].iAmbiant, 20);
+
+	// Affichage des points de controle et des vertex du patch
 	if (showPts)
 	{
 		drawPointsMatrix(ptsControl, QVector3D(1.0, 0, 0), POINT_SIZE);
+		drawPointsMatrix(ptsJoin, QVector3D(1.0, 0, 0), POINT_SIZE);
 		drawPointsMatrix(ptsBezier, QVector3D(0, 1.0, 0), 5);
 		// Surbriller les points de raccordement
 		drawPoints(ptsHighlighted, QVector3D(0, 0, 1.0), 10);
 	}
 }
 
+// Generation des points de controle
 void GLWidget::generateControlPoints()
 {
+	// Si l'utilisateur n'a pas changé les valeurs minimales
 	if (precision < 2 || degU < 2 || degV < 2)
 		return;
+
+	// Sinon, on efface les valeurs actuels des taleaux
 	ptsControl.clear();
+	ptsJoin.clear();
 	ptsHighlighted.clear();
+
 	ptsControl.resize(degU);
 	int x, y, z, zx, zy;
+
+	// On fonction du style de genration de points que l'on souhaite obtenir
 	switch (modeGenPts)
 	{
+		// Cas où l'on souhaite un placement aléatoire
 	case 1:
 		x = (-degU / 2) * randomGeneration(10, 50);
 		for (int i = 0; i < degU; i++)
@@ -203,9 +161,6 @@ void GLWidget::generateControlPoints()
 			y = (-degV / 2) * randomGeneration(10, 50);
 			for (int j = 0; j < degV; j++)
 			{
-				//if (j == degV - 1)
-					//ptsControl[i].push_back(ptsControl[i][0]);
-				//else
 				z = randomGeneration(-200, 200);
 				ptsControl[i].push_back(QVector3D(x, y, z));
 				y += randomGeneration(10, 50);
@@ -213,15 +168,18 @@ void GLWidget::generateControlPoints()
 			x += randomGeneration(10, 50);
 		}
 		break;
+		// Cas où l'on souhaite un placement régulier
 	case 2:
 		x = -degU / 2 * 20;
 		y = -degV / 2 * 20;
 		zx = 0;
 		zy = 0;
+		// Pour chacune des valeurs de nos axes
 		for (int i = 0; i < degU; i++)
 		{
 			for (int j = 0; j < degV; j++)
 			{
+				// On rajoute le point au tableau de points de controle
 				ptsControl[i].push_back(QVector3D(x, y, zy));
 				y += 20;
 				if (j < degV / 2)
@@ -238,9 +196,11 @@ void GLWidget::generateControlPoints()
 			zy = zx;
 		}
 		break;
+
 	default:
 		break;
 	}
+	// On effectue une rotation de nos points de controle
 	doRotation(rotObj);
 	generateSurfaceBezier();
 }
@@ -256,12 +216,17 @@ bool GLWidget::pointsGenerated()
 // Raccordement du patch actuel à un patch aléatoire au même niveau
 void GLWidget::generateJoinPatch()
 {
+	// Vérifier si les points sont déja generés ou pas
 	if (!pointsGenerated())
 		return;
+
 	ptsJoin.clear();
 	ptsJoin.resize(degU);
 	ptsHighlighted.clear();
+
 	int x, y, z;
+
+	// En fonction du type de raccordement que l'on veut avoir
 	switch (joinOrder)
 	{
 	// Raccordement d'ordre C0
@@ -331,13 +296,16 @@ void GLWidget::generateJoinPatch()
 		}
 		x += randomGeneration(10, 50);
 	}
+	// Recacul des points de la surface
 	ptsBezierJoin.clear();
 	ptsBezierJoin = calcSurfaceBezier(ptsJoin, precision);
 	ptsBezier.resize(precision + 1);
+	// Mise à jour des points
 	for (int i = 0; i < ptsBezierJoin.size(); i++)
 		ptsBezier.push_back(ptsBezierJoin[i]);
 }
 
+// Annulation du raccordement
 void GLWidget::cancelJoin()
 {
 	ptsControl.resize(degU);
@@ -346,6 +314,7 @@ void GLWidget::cancelJoin()
 	generateSurfaceBezier();
 }
 
+// Rotation du patcj
 void GLWidget::doRotation(QVector3D rot)
 {
 	QVector3D rotDiff = modeRotation ? rot - rotCam : rot - rotObj;
@@ -369,6 +338,7 @@ void GLWidget::doRotation(QVector3D rot)
 	generateSurfaceBezier();
 }
 
+// Generation de la surface de Bezier
 void GLWidget::generateSurfaceBezier()
 {
 	if (!pointsGenerated())
@@ -675,6 +645,7 @@ void GLWidget::resetCamera()
 void GLWidget::resetData()
 {
 	ptsControl.clear();
+	ptsJoin.clear();
 	ptsBezier.clear();
 	ptsBezierJoin.clear();
 	ptsHighlighted.clear();
