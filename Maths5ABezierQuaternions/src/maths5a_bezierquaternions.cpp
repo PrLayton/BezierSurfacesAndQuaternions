@@ -43,10 +43,15 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	connect(ui.spinHori, SIGNAL(valueChanged(int)), glScene, SLOT(setDegreeU(int)));
 	connect(ui.spinVerti, SIGNAL(valueChanged(int)), glScene, SLOT(setDegreeV(int)));
 	connect(ui.spinPrecision, SIGNAL(valueChanged(int)), glScene, SLOT(setPrecision(int)));
+	connect(ui.spinJoinOrder, SIGNAL(valueChanged(int)), glScene, SLOT(setJoinOrder(int)));
+	connect(ui.bJoin, SIGNAL(clicked()), glScene, SLOT(Join()));
+	connect(ui.bCancelJoin, SIGNAL(clicked()), glScene, SLOT(cancelJoin()));
+
+	// Rotation Quaternion
 	connect(ui.spinX, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
 	connect(ui.spinY, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
 	connect(ui.spinZ, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
-
+	
 	// Définir la couleur du bouton
 	QColor col = convertColor(glScene->lights[0].iAmbiant);
 	QString qss = QString("background-color: %1").arg(col.name());

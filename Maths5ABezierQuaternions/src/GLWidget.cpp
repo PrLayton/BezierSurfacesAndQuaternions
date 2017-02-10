@@ -22,7 +22,7 @@ GLWidget::GLWidget(QWidget *parent) :
 	lights[0].iAmbiant = { 1.0,1.0,1.0 };
 	lights[0].iDiffuse = { 1.0,1.0,1.0 };
 	lights[1].posLight = { -100, 150, 150 };
-	lights[1].iAmbiant = { 0.0,0.0,1.0 };
+	lights[1].iAmbiant = { 1.0,0.0,1.0 };
 	lights[1].iDiffuse = { 0.0,0.0,1.0 };
 }
 
@@ -201,43 +201,49 @@ void GLWidget::drawScene(QMatrix4x4 mvMatrix)
 		drawGridandAxes();
 
 	drawSurfaceBezier();
-
 	vector<QVector3D> ptlight = { lights[0].posLight };
 	vector<QVector3D> ptlight2 = { lights[1].posLight };
 	drawPoints(ptlight, lights[0].iAmbiant, 20);
 	drawPoints(ptlight2, lights[1].iAmbiant, 20);
 	if (showPts)
 	{
-		drawPointsMatrix(ptsRotated, QVector3D(1.0, 0, 0), POINT_SIZE);
+		drawPointsMatrix(ptsControl, QVector3D(1.0, 0, 0), POINT_SIZE);
 		drawPointsMatrix(ptsBezier, QVector3D(0, 1.0, 0), 5);
 	}
+	// Surbriller les points de raccordement
+	drawPoints(ptsHighlighted, QVector3D(0, 0, 1.0), 10);
 }
 
 void GLWidget::generateControlPoints()
 {
-	if (precision < 1 || degU < 1 || degV < 1)
+	if (precision < 2 || degU < 2 || degV < 2)
 		return;
 	ptsControl.clear();
-	ptsRotated.clear();
+	ptsHighlighted.clear();
 	ptsControl.resize(degU);
 	int x, y, z, zx, zy;
 	switch (modeGenPts)
 	{
 	case 1:
+		x = (-degU / 2) * randomGeneration(10, 50);
 		for (int i = 0; i < degU; i++)
 		{
+			y = (-degV / 2) * randomGeneration(10, 50);
 			for (int j = 0; j < degV; j++)
 			{
-				x = randomGeneration(-130, 130);
-				y = randomGeneration(-90, 90);
-				z = randomGeneration(-50, 50);
+				//if (j == degV - 1)
+					//ptsControl[i].push_back(ptsControl[i][0]);
+				//else
+				z = randomGeneration(-200, 200);
 				ptsControl[i].push_back(QVector3D(x, y, z));
+				y += randomGeneration(10, 50);
 			}
+			x += randomGeneration(10, 50);
 		}
 		break;
 	case 2:
-		x = -degU/2*20;
-		y = -degV/2*20;
+		x = -degU / 2 * 20;
+		y = -degV / 2 * 20;
 		zx = 0;
 		zy = 0;
 		for (int i = 0; i < degU; i++)
@@ -263,35 +269,98 @@ void GLWidget::generateControlPoints()
 	default:
 		break;
 	}
-	//ptsRotated = ptsControl;
-	//emit rotationReset();
 	doRotation(rotationValue);
-	generateSurfaceBezier();
+}
+
+// Vérifier si les points sont déjà générés ou pas, pour éviter les erreurs de mémoires
+bool GLWidget::pointsGenerated()
+{
+	if (precision < 2 || ptsControl.size() < 2 || ptsControl[0].size() < 2)
+		return false;
+	return true;
+}
+
+// Raccordement du patch actuel à un patch aléatoire au même niveau
+void GLWidget::Join()
+{
+	if (!pointsGenerated())
+		return;
+	int x, y, z;
+	int newDegree = degU + degU;
+	ptsControl.resize(newDegree);
+	ptsHighlighted.clear();
+	switch (joinOrder)
+	{
+	case 0:
+		// Raccorder ordre 0
+		for (int j = 0; j < degV; j++)
+		{
+			ptsControl[degU].push_back(ptsControl[degU - 1][j]);
+			ptsHighlighted.push_back(ptsControl[degU - 1][j]);
+		}
+		for (int i = degU + 1; i < newDegree; i++)
+			for (int j = 0; j < degV; j++)
+			{
+				x = ptsControl[i - 1][j].x() + randomGeneration(10, 50);
+				y = ptsControl[i - 1][j].y() + randomGeneration(10, 50);
+				z = randomGeneration(-200, 200);
+				ptsControl[i].push_back(QVector3D(x, y, z));
+			}
+		break;
+	case 1:
+		for (int j = 0; j < degV; j++)
+		{
+			ptsControl[degU].push_back(ptsControl[degU - 1][j]);
+			ptsHighlighted.push_back(ptsControl[degU - 1][j]);
+		}
+		for (int i = degU + 1; i < newDegree; i++)
+			for (int j = 0; j < degV; j++)
+			{
+				x = ptsControl[i - 1][j].x() + randomGeneration(10, 50);
+				y = ptsControl[i - 1][j].y() + randomGeneration(10, 50);
+				z = randomGeneration(-200, 200);
+				ptsControl[i].push_back(QVector3D(x, y, z));
+			}
+		break;
+	case 2:
+		break;
+	default:
+		break;
+	}
+	doRotation(rotationValue);
+}
+
+void GLWidget::cancelJoin()
+{
+	ptsControl.resize(degU);
+	ptsHighlighted.clear();
+	doRotation(rotationValue);
 }
 
 void GLWidget::doRotation(QVector3D rot)
 {
 	rotationValue = rot;
-	if (precision < 1 || degU < 1 || degV < 1)
+	if (!pointsGenerated())
 		return;
-	Quaternion quat = Quaternion::fromEulerAngles(rot);
-	//QQuaternion quat = QQuaternion::fromEulerAngles(rot);
-	ptsRotated.clear();
-	ptsRotated.resize(degU);
-	for (int i = 0; i < degU; i++)
-		for (int j = 0; j < degV; j++)
-			ptsRotated[i].push_back(quat.rotatedVector(ptsControl[i][j]));
+	if (rot.lengthSquared() != 0)
+	{
+		Quaternion quat = Quaternion::fromEulerAngles(rot);
+		//QQuaternion quat = QQuaternion::fromEulerAngles(rot);
+		for (int i = 0; i < degU; i++)
+			for (int j = 0; j < degV; j++)
+				ptsControl[i][j] = quat.rotatedVector(ptsControl[i][j]);
+	}
 	generateSurfaceBezier();
 }
 
 void GLWidget::generateSurfaceBezier()
 {
-	if (precision < 1 || degU < 1 || degV < 1)
+	if (!pointsGenerated())
 		return;
 	ptsBezier.clear();
 	QElapsedTimer timer;
 	timer.start();
-	ptsBezier = calcSurfaceBezier(ptsRotated, precision);
+	ptsBezier = calcSurfaceBezier(ptsControl, precision);
 	int time = timer.nsecsElapsed() / 1000;
 	labelTimer = QString::number(time) + " us";
 	emit labelChanged();
@@ -319,7 +388,7 @@ void GLWidget::LoadGLTextures(const char * name)
 void GLWidget::drawSurfaceBezier()
 {
 	glPointSize(3);
-	float t[] = { 200,200,200 };
+	float t[] = { 300,200,200 };
 	glBegin(GL_POINTS);
 		glVertex3fv(t);
 	glEnd();
@@ -329,12 +398,13 @@ void GLWidget::drawSurfaceBezier()
 		glBindTexture(GL_TEXTURE_2D, texture[0]);
 	}
 
-	if (precision < 1 || degU < 1 || degV < 1)
+	if (!pointsGenerated())
 		return;
 	for (int i = 0; i < precision; i++)
 	{
 		for (int j = 0; j < precision; j++)
 		{
+			GLfloat tempVector3D[3];
 			if (showWireframe)
 			{
 				float white[] = { 1.0, 1.0, 1.0 };
@@ -343,7 +413,6 @@ void GLWidget::drawSurfaceBezier()
 			}
 			else
 			{
-				
 				QVector3D red = { 1.0f, 0.6f, 0.6f};
 				QVector3D light1 = { 0.0f, 0.f, 0.f };
 				QVector3D light2 = { 0.0f, 0.f, 0.f };
@@ -352,30 +421,29 @@ void GLWidget::drawSurfaceBezier()
 				if (showLight2)
 					light2 = processLighting(ptsBezier[i][j], ptsBezier[i + 1][j], ptsBezier[i][j + 1], ptsBezier[i + 1][j + 1], lights[1]);
 				if (showLight1 || showLight2)
-					glColor3fv(convertVector3D(light1 + light2));
+					glVector3D(light1 + light2, false);
 				else
-					glColor3fv(convertVector3D(red));
-				//glColor4f(1.0f, 1.0f, 1.0f, 0.5);
+					glVector3D(red, false);
 				glBegin(GL_TRIANGLES);
 			}
 
 			// Coordonnées des points avec coordonnées de la texture
 			if (showTexture) {
-				glTexCoord2f(0.0f, 0.0f);  glVertex3fv(convertVector3D(ptsBezier[i][j]));
-				glTexCoord2f(1.0f, 1.0f);  glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
-				glTexCoord2f(1.0f, 0.0f);  glVertex3fv(convertVector3D(ptsBezier[i + 1][j]));
-				glTexCoord2f(0.0f, 0.0f);  glVertex3fv(convertVector3D(ptsBezier[i][j]));
-				glTexCoord2f(0.0f, 1.0f);  glVertex3fv(convertVector3D(ptsBezier[i][j + 1]));
-				glTexCoord2f(1.0f, 1.0f);  glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
+				glTexCoord2f(0.0f, 0.0f);  glVector3D(ptsBezier[i][j], true);
+				glTexCoord2f(1.0f, 1.0f);  glVector3D(ptsBezier[i + 1][j + 1], true);
+				glTexCoord2f(1.0f, 0.0f);  glVector3D(ptsBezier[i + 1][j], true);
+				glTexCoord2f(0.0f, 0.0f);  glVector3D(ptsBezier[i][j], true);
+				glTexCoord2f(0.0f, 1.0f);  glVector3D(ptsBezier[i][j + 1], true);
+				glTexCoord2f(1.0f, 1.0f);  glVector3D(ptsBezier[i + 1][j + 1], true);
 			}
 			else
 			{
-				glVertex3fv(convertVector3D(ptsBezier[i][j]));
-				glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
-				glVertex3fv(convertVector3D(ptsBezier[i + 1][j]));
-				glVertex3fv(convertVector3D(ptsBezier[i][j]));
-				glVertex3fv(convertVector3D(ptsBezier[i][j + 1]));
-				glVertex3fv(convertVector3D(ptsBezier[i + 1][j + 1]));
+				glVector3D(ptsBezier[i][j], true);
+				glVector3D(ptsBezier[i + 1][j + 1], true);
+				glVector3D(ptsBezier[i + 1][j], true);
+				glVector3D(ptsBezier[i][j], true);
+				glVector3D(ptsBezier[i][j + 1], true);
+				glVector3D(ptsBezier[i + 1][j + 1], true);
 			}
 
 			glEnd();
@@ -447,11 +515,11 @@ void GLWidget::drawPoints(vector<QVector3D> pts, QVector3D color, int ptSize)
 	int nbPoints = pts.size();
 	if (nbPoints == 0)
 		return;
-	glColor3fv(convertVector3D(color));
+	glVector3D(color, false);
 	glPointSize(ptSize);
 	glBegin(GL_POINTS);
 	for (int i = 0; i < nbPoints; i++)
-		glVertex3fv(convertVector3D(pts[i]));
+		glVector3D(pts[i], true);
 	glEnd();
 }
 
@@ -462,12 +530,12 @@ void GLWidget::drawPointsMatrix(vector<vector<QVector3D>> pts, QVector3D color, 
 		return;
 	int m = pts.size();
 	int n = pts[0].size();
-	glColor3fv(convertVector3D(color));
+	glVector3D(color, false);
 	glPointSize(ptSize);
 	glBegin(GL_POINTS);
 	for (int i = 0; i < m; i++)
 		for (int j = 0; j < n; j++)
-			glVertex3fv(convertVector3D(pts[i][j]));
+			glVector3D(pts[i][j], true);
 	glEnd();
 }
 
@@ -477,65 +545,12 @@ QVector3D GLWidget::convertXY(int X, int Y)
 	return QVector3D((int)((float)X * 2.0 * range * m_aspectRatio / screenW - range * m_aspectRatio), (int)((float)Y * 2.0 * range / screenH - range), 0);
 }
 
-// Callback pour les click de la souris
-void GLWidget::mousePressEvent(QMouseEvent *event)
-{
-	//pointSelected = findNearestPoint(event->pos());
-	// Ajout d'un point
-	if (event->buttons() & Qt::LeftButton)
-	{
-		if (pointSelected == -1) 
-		{  
-			//points.push_back(convertXY(event->pos().x(), event->pos().y()));
-			needUpdate = true;
-		}
-	}
-	// Suppression d'un point
-	else if (event->buttons() & Qt::RightButton)
-	{
-		if (pointSelected != -1) 
-		{
-			//points.erase(points.begin() + pointSelected);
-			needUpdate = true;
-		}
-	}
-}
-
 // Callback pour le mouvement de la souris
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	mouse = event->pos();
 	mouseWorld = convertXY(mouse.x(), mouse.y());
 	emit mouseMoved();
-	if (event->buttons() & Qt::LeftButton)
-	{
-		if (pointSelected >= 0)
-		{
-			//points[pointSelected] = convertXY(event->pos().x(), event->pos().y());
-			needUpdate = true;
-		}
-	}
-}
-
-// Callback pour la relâche de la souris
-void GLWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-	if (event->button() == Qt::LeftButton && pointSelected >= 0)
-	{
-	}
-}
-
-// Chercher du point (dans la nuage existante) la plus proche de la souris
-int GLWidget::findNearestPoint(vector<QVector3D> pts, QPoint p)
-{
-	int nbPoints = pts.size();
-	for (int i = 0; i < nbPoints; i++)
-	{
-		QVector3D d = convertXY(p.x(), p.y()) - QVector3D(pts[i].x(), pts[i].y(), 0);
-		if (sqrt(pow(d.x(), 2) + pow(d.y(), 2) <= POINT_SIZE*4))
-			return i;
-	}
-	return -1;
 }
 
 // Dessiner la grille et les axes dans la scène
@@ -585,31 +600,31 @@ void GLWidget::keyPressEvent(QKeyEvent* e)
 {
 	switch (e->key())
 	{
-		case Qt::Key_Escape:
-			qApp->quit();
-			break;
-		case Qt::Key_Left:
-			m_phi += 2.0f;
-			break;
-		case Qt::Key_Right:
-			m_phi -= 2.0f;
-			break;
-		case Qt::Key_Up:
-			m_theta += 2.0f;
-			break;
-		case Qt::Key_Down:
-			m_theta -= 2.0f;
-			break;
-		case Qt::Key_Minus:
-			depthBetweenPoints -= 1;
-			generateControlPoints();
-			break;
-		case Qt::Key_Plus:
-			depthBetweenPoints += 1;
-			generateControlPoints();
-			break;
-		default:
-			break;
+	case Qt::Key_Escape:
+		qApp->quit();
+		break;
+	case Qt::Key_Left:
+		m_phi += 2.0f;
+		break;
+	case Qt::Key_Right:
+		m_phi -= 2.0f;
+		break;
+	case Qt::Key_Up:
+		m_theta += 2.0f;
+		break;
+	case Qt::Key_Down:
+		m_theta -= 2.0f;
+		break;
+	case Qt::Key_Minus:
+		depthBetweenPoints -= 1;
+		generateControlPoints();
+		break;
+	case Qt::Key_Plus:
+		depthBetweenPoints += 1;
+		generateControlPoints();
+		break;
+	default:
+		break;
 	}
 }
 
@@ -647,10 +662,8 @@ void GLWidget::resetCamera()
 void GLWidget::resetData()
 {
 	ptsControl.clear();
+	ptsHighlighted.clear();
 	ptsBezier.clear();
-	ptsRotated.clear();
-	points.clear();
 	degU = 0;
 	degV = 0;
-	needUpdate = true;
 }

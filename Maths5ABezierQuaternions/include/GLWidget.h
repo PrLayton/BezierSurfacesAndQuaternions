@@ -40,9 +40,7 @@ public:
 
 protected:
 	// Les événements Qt de souris et du clavier
-	void mousePressEvent(QMouseEvent *event);
 	void mouseMoveEvent(QMouseEvent *event);
-	void mouseReleaseEvent(QMouseEvent *event);
 	void wheelEvent(QWheelEvent * event);
 	virtual void keyPressEvent(QKeyEvent* e);
 
@@ -58,6 +56,7 @@ public slots:
 	void setDegreeU(int m) { degU = m; generateControlPoints(); }
 	void setDegreeV(int n) { degV = n; generateControlPoints(); }
 	void setPrecision(int p) { precision = p; generateSurfaceBezier(); }
+	void setJoinOrder(int j) { joinOrder = j; }
 	void setGrid(int g) { showGrid = g == 0 ? false : true; }
 	void setShowPts(int s) { showPts = s == 0 ? false : true; }
 	void setWireframe(int e) { showWireframe = e == 0 ? false : true; }
@@ -66,6 +65,8 @@ public slots:
 	void setShowLight2(int h) { showLight2 = h == 0 ? false : true; }
 	void setShowLightDiffuse(int i) { showLightDiffuse = i == 0 ? false : true; }
 	void setShowLightSpecular(int i) { showLightSpecular = i == 0 ? false : true; }
+	void Join();
+	void cancelJoin();
 	// Réinitialiser les données
 	void resetData();
 	// Réinitialiser le caméra à la vue par défaut
@@ -76,8 +77,7 @@ private:
 	void drawScene(QMatrix4x4 mvMatrix);
 	// Conversion de coordonnées d'écran à coordonnées de la scène OPENGL
 	QVector3D convertXY(int X, int Y);
-	// Chercher du point (dans la nuage existante) la plus proche de la souris
-	int findNearestPoint(vector<QVector3D> pts, QPoint p);
+	bool pointsGenerated();
 	// Dessiner la grille et les axes
 	void drawGridandAxes();
 	// Dessiner des points
@@ -116,8 +116,8 @@ private:
 	QVector3D objectColor = { 1.0,0.6,0.6 };
 	QVector3D processLighting(QVector3D p1Face, QVector3D p2Face, QVector3D p3Face, QVector3D p4Face, Light light);
 	// Les données
-	vector<QVector3D> points;
-	vector<vector<QVector3D>> ptsControl, ptsRotated, ptsBezier;
+	vector<QVector3D> ptsHighlighted;
+	vector<vector<QVector3D>> ptsControl, ptsBezier;
 	QVector3D rotationValue = QVector3D(0, 0, 0);
 	int pointSelected = -1;
 	GLuint texture[1];
@@ -127,8 +127,8 @@ private:
 	int degU = 0;
 	int degV = 0;
 	int precision = 10;
+	int joinOrder = 0;
 	int depthBetweenPoints = 0;
-	bool needUpdate = false;
 	bool showWireframe = false;
 	bool showPts = false;
 	bool showGrid = false;

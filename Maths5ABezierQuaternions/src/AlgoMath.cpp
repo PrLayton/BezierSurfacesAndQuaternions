@@ -47,13 +47,17 @@ int randomGeneration(int min, int max)
 	return dist(engine);
 }
 
-GLfloat* convertVector3D(QVector3D p)
+void glVector3D(QVector3D p, bool vertex)
 {
 	GLfloat *temp = new GLfloat[3];
 	temp[0] = p.x();
 	temp[1] = p.y();
 	temp[2] = p.z();
-	return temp;
+	if (vertex)
+		glVertex3fv(temp);
+	else
+		glColor3fv(temp);
+	delete[] temp;
 }
 
 QColor convertColor(QVector3D col)
@@ -62,4 +66,11 @@ QColor convertColor(QVector3D col)
 	int g = (int)(col.y() * 255);
 	int b = (int)(col.z() * 255);
 	return QColor(r, g, b);
+}
+
+void clearMatrixPoints(vector<vector<QVector3D>> &pts)
+{
+	for (int i = 0; i < pts.size(); i++)
+		pts[i].clear();
+	pts.clear();	
 }
