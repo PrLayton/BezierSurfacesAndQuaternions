@@ -283,17 +283,17 @@ void GLWidget::generateJoinPatch()
 		break;
 	}
 	// Génération aléatoire des points restants
-	x = ptsJoin[joinOrder][0].x() + randomGeneration(10, 50);
+	x = ptsJoin[joinOrder][0].x() + 30;// randomGeneration(10, 50);
 	for (int i = 1 + joinOrder; i < degU; i++)
 	{
-		y = ptsJoin[i - 1][0].y() + randomGeneration(10, 50);
+		y = ptsJoin[i - 1][0].y() + 30;// randomGeneration(10, 50);
 		for (int j = 0; j < degV; j++)
 		{
 			z = randomGeneration(-100, 100);
 			ptsJoin[i].push_back(QVector3D(x, y, z));
-			y += randomGeneration(10, 50);
+			y += 30;// randomGeneration(10, 50);
 		}
-		x += randomGeneration(10, 50);
+		x += 30;// randomGeneration(10, 50);
 	}
 	// Recacul des points de la surface
 	ptsBezierJoin.clear();

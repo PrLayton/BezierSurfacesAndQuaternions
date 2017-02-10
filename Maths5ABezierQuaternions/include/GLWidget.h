@@ -14,6 +14,7 @@ using namespace std;
 
 #define POINT_SIZE 10
 
+// Structure pour la lumière
 struct Light
 {
 	QVector3D posLight;
@@ -33,10 +34,11 @@ public:
 	void paintGL();
 	void setModeGeneration(int mode) { modeGenPts = mode; generateControlPoints(); }
 	void doRotation(QVector3D rot, bool obj);
+	// Les variables publiques pour interagir avec l'UI
 	QString labelTimer;
 	QPoint mouse;
 	QVector3D mouseWorld;
-	QVector3D objectColor = { 1.0,0.6,0.6 };
+	QVector3D objectColor = { 1.0, 0.6, 0.6 };
 	Light lights[2];
 	QVector3D rotObj = QVector3D(0, 0, 0);
 	QVector3D rotCam = QVector3D(0, 0, 0);
@@ -68,7 +70,9 @@ public slots:
 	void setShowLight2(int h) { showLight2 = h == 0 ? false : true; }
 	void setShowLightDiffuse(int i) { showLightDiffuse = i == 0 ? false : true; }
 	void setShowLightSpecular(int i) { showLightSpecular = i == 0 ? false : true; }
+	// Créer une nouvelle surface pour le raccordement
 	void generateJoinPatch();
+	// Supprimer la surface de raccordement
 	void cancelJoin();
 	// Réinitialiser les données
 	void resetData();
