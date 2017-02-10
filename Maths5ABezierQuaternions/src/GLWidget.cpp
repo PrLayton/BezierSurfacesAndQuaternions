@@ -291,11 +291,13 @@ void GLWidget::Join()
 	int x, y, z;
 	switch (joinOrder)
 	{
+	// Raccordement d'ordre C0
 	case 0:
-		// Raccorder ordre 0
 		for (int j = 0; j < degV; j++)
 		{
+			// Q0 = Pn
 			ptsJoin[0].push_back(ptsControl[degU - 1][j]);
+			// Stocker les points concernés pour surbriller
 			ptsHighlighted.push_back(ptsControl[degU - 1][j]);
 		}
 		
@@ -312,9 +314,69 @@ void GLWidget::Join()
 			x += randomGeneration(10, 50);
 		}
 		break;
+	// Raccordement d'ordre C1
 	case 1:
+		for (int j = 0; j < degV; j++)
+		{
+			// Q0 = Pn
+			ptsJoin[0].push_back(ptsControl[degU - 1][j]);
+			// Q1 = 2*Pn - P(n-1)
+			QVector3D Q1 = 2 * ptsControl[degU - 1][j] - ptsControl[degU - 2][j];
+			ptsJoin[1].push_back(Q1);
+			// Stocker les points concernés pour surbriller
+			ptsHighlighted.push_back(ptsControl[degU - 2][j]);
+			ptsHighlighted.push_back(ptsControl[degU - 1][j]);
+			ptsHighlighted.push_back(Q1);
+		}
+
+		x = ptsJoin[1][0].x() + randomGeneration(10, 50);
+		for (int i = 2; i < degU; i++)
+		{
+			y = ptsJoin[i - 1][0].y() + randomGeneration(10, 50);
+			for (int j = 0; j < degV; j++)
+			{
+				z = randomGeneration(-100, 100);
+				ptsJoin[i].push_back(QVector3D(x, y, z));
+				y += randomGeneration(10, 50);
+			}
+			x += randomGeneration(10, 50);
+		}
 		break;
+	// Raccordement d'ordre C2
 	case 2:
+		// Vérifier si le degré initial est suffisant pour le raccordement C2
+		if (degU < 3)
+			break;
+		for (int j = 0; j < degV; j++)
+		{
+			// Q0 = Pn
+			ptsJoin[0].push_back(ptsControl[degU - 1][j]);
+			// Q1 = 2*Pn - P(n-1)
+			QVector3D Q1 = 2 * ptsControl[degU - 1][j] - ptsControl[degU - 2][j];
+			ptsJoin[1].push_back(Q1);
+			// Q2 = P(n-2) + 2*(Q1 - P(n-1))
+			QVector3D Q2 = ptsControl[degU - 3][j] + 2 * (Q1 - ptsControl[degU - 2][j]);
+			ptsJoin[2].push_back(Q2);
+			// Stocker les points concernés pour surbriller
+			ptsHighlighted.push_back(ptsControl[degU - 3][j]);
+			ptsHighlighted.push_back(ptsControl[degU - 2][j]);
+			ptsHighlighted.push_back(ptsControl[degU - 1][j]);
+			ptsHighlighted.push_back(Q1);
+			ptsHighlighted.push_back(Q2);
+		}
+
+		x = ptsJoin[2][0].x() + randomGeneration(10, 50);
+		for (int i = 3; i < degU; i++)
+		{
+			y = ptsJoin[i - 1][0].y() + randomGeneration(10, 50);
+			for (int j = 0; j < degV; j++)
+			{
+				z = randomGeneration(-100, 100);
+				ptsJoin[i].push_back(QVector3D(x, y, z));
+				y += randomGeneration(10, 50);
+			}
+			x += randomGeneration(10, 50);
+		}
 		break;
 	default:
 		break;
