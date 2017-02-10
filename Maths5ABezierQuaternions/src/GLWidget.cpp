@@ -285,49 +285,45 @@ void GLWidget::Join()
 {
 	if (!pointsGenerated())
 		return;
-	int x, y, z;
-	int newDegree = degU + degU;
-	ptsControl.resize(newDegree);
+	ptsJoin.clear();
+	ptsJoin.resize(degU);
 	ptsHighlighted.clear();
+	int x, y, z;
 	switch (joinOrder)
 	{
 	case 0:
 		// Raccorder ordre 0
 		for (int j = 0; j < degV; j++)
 		{
-			ptsControl[degU].push_back(ptsControl[degU - 1][j]);
+			ptsJoin[0].push_back(ptsControl[degU - 1][j]);
 			ptsHighlighted.push_back(ptsControl[degU - 1][j]);
 		}
-		for (int i = degU + 1; i < newDegree; i++)
+		
+		x = ptsJoin[0][0].x() + randomGeneration(10, 50);
+		for (int i = 1; i < degU; i++)
+		{
+			y = ptsJoin[i - 1][0].y() + randomGeneration(10, 50);
 			for (int j = 0; j < degV; j++)
 			{
-				x = ptsControl[i - 1][j].x() + randomGeneration(10, 50);
-				y = ptsControl[i - 1][j].y() + randomGeneration(10, 50);
-				z = randomGeneration(-200, 200);
-				ptsControl[i].push_back(QVector3D(x, y, z));
+				z = randomGeneration(-100, 100);
+				ptsJoin[i].push_back(QVector3D(x, y, z));
+				y += randomGeneration(10, 50);
 			}
+			x += randomGeneration(10, 50);
+		}
 		break;
 	case 1:
-		for (int j = 0; j < degV; j++)
-		{
-			ptsControl[degU].push_back(ptsControl[degU - 1][j]);
-			ptsHighlighted.push_back(ptsControl[degU - 1][j]);
-		}
-		for (int i = degU + 1; i < newDegree; i++)
-			for (int j = 0; j < degV; j++)
-			{
-				x = ptsControl[i - 1][j].x() + randomGeneration(10, 50);
-				y = ptsControl[i - 1][j].y() + randomGeneration(10, 50);
-				z = randomGeneration(-200, 200);
-				ptsControl[i].push_back(QVector3D(x, y, z));
-			}
 		break;
 	case 2:
 		break;
 	default:
 		break;
 	}
-	doRotation(rotationValue);
+	ptsBezierJoin.clear();
+	ptsBezierJoin = calcSurfaceBezier(ptsJoin, precision);
+	ptsBezier.resize(precision + 1);
+	for (int i = 0; i < ptsBezierJoin.size(); i++)
+		ptsBezier.push_back(ptsBezierJoin[i]);
 }
 
 void GLWidget::cancelJoin()
@@ -400,9 +396,9 @@ void GLWidget::drawSurfaceBezier()
 
 	if (!pointsGenerated())
 		return;
-	for (int i = 0; i < precision; i++)
+	for (int i = 0; i < ptsBezier.size() - 1; i++)
 	{
-		for (int j = 0; j < precision; j++)
+		for (int j = 0; j < ptsBezier[0].size() - 1; j++)
 		{
 			GLfloat tempVector3D[3];
 			if (showWireframe)

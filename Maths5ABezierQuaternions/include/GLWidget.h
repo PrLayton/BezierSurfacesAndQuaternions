@@ -117,7 +117,7 @@ private:
 	QVector3D processLighting(QVector3D p1Face, QVector3D p2Face, QVector3D p3Face, QVector3D p4Face, Light light);
 	// Les données
 	vector<QVector3D> ptsHighlighted;
-	vector<vector<QVector3D>> ptsControl, ptsBezier;
+	vector<vector<QVector3D>> ptsControl, ptsJoin, ptsBezier, ptsBezierJoin;
 	QVector3D rotationValue = QVector3D(0, 0, 0);
 	int pointSelected = -1;
 	GLuint texture[1];
