@@ -1,0 +1,25 @@
+Mode de génération des points : 
+Aléatoire : génére des points de controle aléatoirement mais de façon ordonné
+Réglage de l'ahuteur : génère une grille de points et la hauteur du point central peut être modifié
+
+Degré horizontal et degré vertiacal : dimmension de la matrice de points de contrôles
+Nombre de pas : précision des Beziers
+
+Ordre de raccordement : type de raccordement que l'on souhaite générer
+Appuyer sur "Raccorder" pour généré un nouveau patch avec le type de raccord demandé
+"Annuler" permet de supprimer ce nouveau patch
+
+
+Pour observer le patch sous différents angles : touches fléchées
+Pour zoom ou dé-zoomer : molette de la souris
+Pour augmenter la hauteur du centre du patch ou changer les points aléatoires : touches + et -
+
+Filaire : afficher le patch en wireframe
+Texture : afficher la texture sur le patch
+
+Cliquer sur "Cloueur du patch" pour changer la couleur de l'objet
+Source 1 et deux sont les deux lights présentes dans la scène
+Diffuse et specular correspondes à l'éclairage des deux lights
+La speclar est calculée avec la position de la camera perspective (le point rouge dans la scène)
+
+On peut modifier la rotation dans l'espace du patch ou de la camera (le point rouge) avec les valeurs "X", "Y", "Z".
