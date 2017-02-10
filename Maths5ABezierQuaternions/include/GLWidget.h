@@ -32,11 +32,16 @@ public:
 	void resizeGL(int width, int height);
 	void paintGL();
 	void setModeGeneration(int mode) { modeGenPts = mode; generateControlPoints(); }
+	void setModeRotation(int mode) { modeRotation = mode; }
 	void doRotation(QVector3D rot);
 	QString labelTimer;
 	QPoint mouse;
 	QVector3D mouseWorld;
+	QVector3D objectColor = { 1.0,0.6,0.6 };
 	Light lights[2];
+	QVector3D rotObj = QVector3D(0, 0, 0);
+	QVector3D rotCam = QVector3D(0, 0, 0);
+	QVector3D posCam = QVector3D(500, 200, 200);
 
 protected:
 	// Les événements Qt de souris et du clavier
@@ -48,7 +53,6 @@ signals:
 	// Signal Qt pour mettre à jour les labels de Timers
 	void labelChanged();
 	void mouseMoved();
-	void rotationReset();
 
 public slots:
 	void timeOutSlot();
@@ -65,7 +69,7 @@ public slots:
 	void setShowLight2(int h) { showLight2 = h == 0 ? false : true; }
 	void setShowLightDiffuse(int i) { showLightDiffuse = i == 0 ? false : true; }
 	void setShowLightSpecular(int i) { showLightSpecular = i == 0 ? false : true; }
-	void Join();
+	void generateJoinPatch();
 	void cancelJoin();
 	// Réinitialiser les données
 	void resetData();
@@ -113,21 +117,20 @@ private:
 	float kDiffuse = 0.2;
 	float kSpecular = 0.5;
 	//QVector3D objectColor = { 1.0,1.0,1.0 };
-	QVector3D objectColor = { 1.0,0.6,0.6 };
 	QVector3D processLighting(QVector3D p1Face, QVector3D p2Face, QVector3D p3Face, QVector3D p4Face, Light light);
 	// Les données
 	vector<QVector3D> ptsHighlighted;
 	vector<vector<QVector3D>> ptsControl, ptsJoin, ptsBezier, ptsBezierJoin;
-	QVector3D rotationValue = QVector3D(0, 0, 0);
 	int pointSelected = -1;
 	GLuint texture[1];
 
 	// Les paramètres de l'UI
 	int modeGenPts = 2;		// 1 pour Aléatoire, 2 pour réglage de l'hauteur
+	int modeRotation = 0;	// 0 pour Objet, 1 pour Caméra
 	int degU = 0;
 	int degV = 0;
 	int precision = 10;
-	int joinOrder = 0;
+	int joinOrder = 0;		// Raccordement 0-2
 	int depthBetweenPoints = 0;
 	bool showWireframe = false;
 	bool showPts = false;

@@ -55,7 +55,6 @@ void GLWidget::initializeGL()
 	program.addShader(&fragmentShader);
 	program.link();*/
 
-
 	glClearColor(0, 0, 0, 0.0f);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -140,33 +139,6 @@ void GLWidget::paintGL()
 	drawScene(modelViewMatrix);
 
 	glPopMatrix();
-	
-
-	/*glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(0.75, 0.75, 0.75, 0, 0, 0, 0, 0, 1);
-
-	glBegin(GL_QUADS);
-	//carré rouge
-	glColor3ub(255, 0, 0);
-	glVertex3d(1, 0, 0);
-	glVertex3d(1, 1, 0);
-	glVertex3d(1, 1, 1);
-	glVertex3d(1, 0, 1);
-	//carré vert
-	glColor3ub(0, 255, 0);
-	glVertex3d(1, 1, 0);
-	glVertex3d(0, 1, 0);
-	glVertex3d(0, 1, 1);
-	glVertex3d(1, 1, 1);
-	//carré bleu
-	glColor3ub(0, 0, 255);
-	glVertex3d(1, 1, 1);
-	glVertex3d(1, 0, 1);
-	glVertex3d(0, 0, 1);
-	glVertex3d(0, 1, 1);
-	glEnd();*/
 }
 
 // Fonction rendu de la scène
@@ -209,9 +181,9 @@ void GLWidget::drawScene(QMatrix4x4 mvMatrix)
 	{
 		drawPointsMatrix(ptsControl, QVector3D(1.0, 0, 0), POINT_SIZE);
 		drawPointsMatrix(ptsBezier, QVector3D(0, 1.0, 0), 5);
+		// Surbriller les points de raccordement
+		drawPoints(ptsHighlighted, QVector3D(0, 0, 1.0), 10);
 	}
-	// Surbriller les points de raccordement
-	drawPoints(ptsHighlighted, QVector3D(0, 0, 1.0), 10);
 }
 
 void GLWidget::generateControlPoints()
@@ -269,7 +241,8 @@ void GLWidget::generateControlPoints()
 	default:
 		break;
 	}
-	doRotation(rotationValue);
+	doRotation(rotObj);
+	generateSurfaceBezier();
 }
 
 // Vérifier si les points sont déjà générés ou pas, pour éviter les erreurs de mémoires
@@ -281,7 +254,7 @@ bool GLWidget::pointsGenerated()
 }
 
 // Raccordement du patch actuel à un patch aléatoire au même niveau
-void GLWidget::Join()
+void GLWidget::generateJoinPatch()
 {
 	if (!pointsGenerated())
 		return;
@@ -293,6 +266,7 @@ void GLWidget::Join()
 	{
 	// Raccordement d'ordre C0
 	case 0:
+		// Génération des points importants
 		for (int j = 0; j < degV; j++)
 		{
 			// Q0 = Pn
@@ -300,22 +274,10 @@ void GLWidget::Join()
 			// Stocker les points concernés pour surbriller
 			ptsHighlighted.push_back(ptsControl[degU - 1][j]);
 		}
-		
-		x = ptsJoin[0][0].x() + randomGeneration(10, 50);
-		for (int i = 1; i < degU; i++)
-		{
-			y = ptsJoin[i - 1][0].y() + randomGeneration(10, 50);
-			for (int j = 0; j < degV; j++)
-			{
-				z = randomGeneration(-100, 100);
-				ptsJoin[i].push_back(QVector3D(x, y, z));
-				y += randomGeneration(10, 50);
-			}
-			x += randomGeneration(10, 50);
-		}
 		break;
 	// Raccordement d'ordre C1
 	case 1:
+		// Génération des points importants
 		for (int j = 0; j < degV; j++)
 		{
 			// Q0 = Pn
@@ -328,25 +290,13 @@ void GLWidget::Join()
 			ptsHighlighted.push_back(ptsControl[degU - 1][j]);
 			ptsHighlighted.push_back(Q1);
 		}
-
-		x = ptsJoin[1][0].x() + randomGeneration(10, 50);
-		for (int i = 2; i < degU; i++)
-		{
-			y = ptsJoin[i - 1][0].y() + randomGeneration(10, 50);
-			for (int j = 0; j < degV; j++)
-			{
-				z = randomGeneration(-100, 100);
-				ptsJoin[i].push_back(QVector3D(x, y, z));
-				y += randomGeneration(10, 50);
-			}
-			x += randomGeneration(10, 50);
-		}
 		break;
 	// Raccordement d'ordre C2
 	case 2:
 		// Vérifier si le degré initial est suffisant pour le raccordement C2
 		if (degU < 3)
 			break;
+		// Génération des points importants
 		for (int j = 0; j < degV; j++)
 		{
 			// Q0 = Pn
@@ -364,22 +314,22 @@ void GLWidget::Join()
 			ptsHighlighted.push_back(Q1);
 			ptsHighlighted.push_back(Q2);
 		}
-
-		x = ptsJoin[2][0].x() + randomGeneration(10, 50);
-		for (int i = 3; i < degU; i++)
-		{
-			y = ptsJoin[i - 1][0].y() + randomGeneration(10, 50);
-			for (int j = 0; j < degV; j++)
-			{
-				z = randomGeneration(-100, 100);
-				ptsJoin[i].push_back(QVector3D(x, y, z));
-				y += randomGeneration(10, 50);
-			}
-			x += randomGeneration(10, 50);
-		}
 		break;
 	default:
 		break;
+	}
+	// Génération aléatoire des points restants
+	x = ptsJoin[joinOrder][0].x() + randomGeneration(10, 50);
+	for (int i = 1 + joinOrder; i < degU; i++)
+	{
+		y = ptsJoin[i - 1][0].y() + randomGeneration(10, 50);
+		for (int j = 0; j < degV; j++)
+		{
+			z = randomGeneration(-100, 100);
+			ptsJoin[i].push_back(QVector3D(x, y, z));
+			y += randomGeneration(10, 50);
+		}
+		x += randomGeneration(10, 50);
 	}
 	ptsBezierJoin.clear();
 	ptsBezierJoin = calcSurfaceBezier(ptsJoin, precision);
@@ -392,18 +342,26 @@ void GLWidget::cancelJoin()
 {
 	ptsControl.resize(degU);
 	ptsHighlighted.clear();
-	doRotation(rotationValue);
+	doRotation(rotObj);
+	generateSurfaceBezier();
 }
 
 void GLWidget::doRotation(QVector3D rot)
 {
-	rotationValue = rot;
+	QVector3D rotDiff = modeRotation ? rot - rotCam : rot - rotObj;
+	Quaternion quat = Quaternion::fromEulerAngles(rotDiff);
+	//QQuaternion quat = QQuaternion::fromEulerAngles(rotDiff);
+	if (modeRotation)
+	{
+		rotCam = rot;
+		posCam = quat.rotatedVector(posCam);
+		return;
+	}
+	rotObj = rot;
 	if (!pointsGenerated())
 		return;
-	if (rot.lengthSquared() != 0)
+	if (rotDiff.lengthSquared() != 0)
 	{
-		Quaternion quat = Quaternion::fromEulerAngles(rot);
-		//QQuaternion quat = QQuaternion::fromEulerAngles(rot);
 		for (int i = 0; i < degU; i++)
 			for (int j = 0; j < degV; j++)
 				ptsControl[i][j] = quat.rotatedVector(ptsControl[i][j]);
@@ -446,11 +404,10 @@ void GLWidget::LoadGLTextures(const char * name)
 void GLWidget::drawSurfaceBezier()
 {
 	glPointSize(3);
-	float t[] = { 300,200,200 };
 	glBegin(GL_POINTS);
-		glVertex3fv(t);
+		glVector3D(posCam, true);
 	glEnd();
-	
+		
 	if (showTexture) {
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, texture[0]);
@@ -471,7 +428,6 @@ void GLWidget::drawSurfaceBezier()
 			}
 			else
 			{
-				QVector3D red = { 1.0f, 0.6f, 0.6f};
 				QVector3D light1 = { 0.0f, 0.f, 0.f };
 				QVector3D light2 = { 0.0f, 0.f, 0.f };
 				if (showLight1)
@@ -481,7 +437,7 @@ void GLWidget::drawSurfaceBezier()
 				if (showLight1 || showLight2)
 					glVector3D(light1 + light2, false);
 				else
-					glVector3D(red, false);
+					glVector3D(objectColor, false);
 				glBegin(GL_TRIANGLES);
 			}
 
@@ -503,7 +459,6 @@ void GLWidget::drawSurfaceBezier()
 				glVector3D(ptsBezier[i][j + 1], true);
 				glVector3D(ptsBezier[i + 1][j + 1], true);
 			}
-
 			glEnd();
 		}
 	}
@@ -529,7 +484,7 @@ QVector3D GLWidget::processLighting(QVector3D p1Face, QVector3D p2Face, QVector3
 	float cosAngle = QVector3D::dotProduct(normal, dir) / (normal.length() * dir.length());
 	cosAngle = (cosAngle <= 0) ? 0 : cosAngle;
 	QVector3D R = dir - 2 * normal*(QVector3D::dotProduct(normal, dir));
-	float ns = QVector3D::dotProduct(R, p1Face - QVector3D(200, 200, 200)) / (R.length() * (p1Face - QVector3D(200, 200, 200)).length());
+	float ns = QVector3D::dotProduct(R, p1Face - posCam) / (R.length() * (p1Face - posCam).length());
 
 	ns = (ns <= 0 || cosAngle <= 0) ? 0 : ns;
 	ns = pow(ns, 32);
@@ -662,10 +617,10 @@ void GLWidget::keyPressEvent(QKeyEvent* e)
 		qApp->quit();
 		break;
 	case Qt::Key_Left:
-		m_phi += 2.0f;
+		m_phi -= 2.0f;
 		break;
 	case Qt::Key_Right:
-		m_phi -= 2.0f;
+		m_phi += 2.0f;
 		break;
 	case Qt::Key_Up:
 		m_theta += 2.0f;
@@ -720,8 +675,9 @@ void GLWidget::resetCamera()
 void GLWidget::resetData()
 {
 	ptsControl.clear();
-	ptsHighlighted.clear();
 	ptsBezier.clear();
+	ptsBezierJoin.clear();
+	ptsHighlighted.clear();
 	degU = 0;
 	degV = 0;
 }

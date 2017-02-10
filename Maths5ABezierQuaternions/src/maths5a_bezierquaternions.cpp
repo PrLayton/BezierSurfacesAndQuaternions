@@ -22,8 +22,7 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	// Signal depuis le GLWidget
 	connect(glScene, SIGNAL(labelChanged()), this, SLOT(updateLabelTimer()));
 	connect(glScene, SIGNAL(mouseMoved()), this, SLOT(updateStatus()));
-	connect(glScene, SIGNAL(rotationReset()), this, SLOT(resetRotation()));
-
+	
 	// Connect signals aux éléments de l'UI
 	connect(ui.rbRandom, SIGNAL(clicked()), this, SLOT(setModeGenerationPoints()));
 	connect(ui.rbAdjust, SIGNAL(clicked()), this, SLOT(setModeGenerationPoints()));
@@ -44,17 +43,22 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	connect(ui.spinVerti, SIGNAL(valueChanged(int)), glScene, SLOT(setDegreeV(int)));
 	connect(ui.spinPrecision, SIGNAL(valueChanged(int)), glScene, SLOT(setPrecision(int)));
 	connect(ui.spinJoinOrder, SIGNAL(valueChanged(int)), glScene, SLOT(setJoinOrder(int)));
-	connect(ui.bJoin, SIGNAL(clicked()), glScene, SLOT(Join()));
+	connect(ui.bJoin, SIGNAL(clicked()), glScene, SLOT(generateJoinPatch()));
 	connect(ui.bCancelJoin, SIGNAL(clicked()), glScene, SLOT(cancelJoin()));
 
 	// Rotation Quaternion
+	connect(ui.rbRotObj, SIGNAL(clicked()), this, SLOT(setModeRotation()));
+	connect(ui.rbRotCam, SIGNAL(clicked()), this, SLOT(setModeRotation()));
 	connect(ui.spinX, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
 	connect(ui.spinY, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
 	connect(ui.spinZ, SIGNAL(valueChanged(double)), this, SLOT(setRotation()));
 	
-	// Définir la couleur du bouton
-	QColor col = convertColor(glScene->lights[0].iAmbiant);
+	// Définir la couleur des boutons et leur signal
+	QColor col = convertColor(glScene->objectColor);
 	QString qss = QString("background-color: %1").arg(col.name());
+	ui.bColorObj->setStyleSheet(qss);
+	col = convertColor(glScene->lights[0].iAmbiant);
+	qss = QString("background-color: %1").arg(col.name());
 	ui.bColorS1->setStyleSheet(qss);
 	col = convertColor(glScene->lights[1].iAmbiant);
 	qss = QString("background-color: %1").arg(col.name());
@@ -62,25 +66,37 @@ Math5A_Bezier::Math5A_Bezier(QWidget *parent)
 	bGroup = new QButtonGroup(this);
 	bGroup->addButton(ui.bColorS1, 0);
 	bGroup->addButton(ui.bColorS2, 1);
+	bGroup->addButton(ui.bColorObj, 2);
 	connect(bGroup, SIGNAL(buttonClicked(int)), this, SLOT(setColor(int)));
 }
 
 void Math5A_Bezier::setColor(int id)
 {
-	QColor initial = convertColor(glScene->lights[id].iAmbiant);
+	QColor initial;
+	if (id == 2)
+		initial = convertColor(glScene->objectColor);
+	else
+		initial = convertColor(glScene->lights[id].iAmbiant);
 	QColor col = QColorDialog::getColor(initial, this);
 	if (col.isValid())
 	{
 		QString qss = QString("background-color: %1").arg(col.name());
-		if (id)
-			ui.bColorS2->setStyleSheet(qss);
+		if (id == 2)
+		{
+			ui.bColorObj->setStyleSheet(qss);
+			glScene->objectColor = QVector3D(col.red() / 255.0, col.green() / 255.0, col.blue() / 255.0);
+		}
 		else
-			ui.bColorS1->setStyleSheet(qss);
-		glScene->lights[id].iAmbiant = QVector3D(col.red() / 255.0, col.green() / 255.0, col.blue() / 255.0);;
-		glScene->lights[id].iDiffuse = glScene->lights[id].iAmbiant;
+		{
+			if (id)
+				ui.bColorS2->setStyleSheet(qss);
+			else
+				ui.bColorS1->setStyleSheet(qss);
+			glScene->lights[id].iAmbiant = QVector3D(col.red() / 255.0, col.green() / 255.0, col.blue() / 255.0);;
+			glScene->lights[id].iDiffuse = glScene->lights[id].iAmbiant;
+		}
 	}
 }
-
 
 // Mettre à jour le mode de génération des points de contrôle
 void Math5A_Bezier::setModeGenerationPoints()
@@ -91,6 +107,25 @@ void Math5A_Bezier::setModeGenerationPoints()
 	}
 	else if (ui.rbAdjust->isChecked())
 		glScene->setModeGeneration(2);
+}
+
+// Mettre à jour le mode de rotation pour l'objet ou pour la caméra
+void Math5A_Bezier::setModeRotation()
+{
+	if (ui.rbRotObj->isChecked())
+	{
+		glScene->setModeRotation(0);
+		ui.spinX->setValue(glScene->rotObj.x());
+		ui.spinY->setValue(glScene->rotObj.y());
+		ui.spinZ->setValue(glScene->rotObj.z());
+	}
+	else if (ui.rbRotCam->isChecked())
+	{
+		glScene->setModeRotation(1);
+		ui.spinX->setValue(glScene->rotCam.x());
+		ui.spinY->setValue(glScene->rotCam.y());
+		ui.spinZ->setValue(glScene->rotCam.z());
+	}
 }
 
 // Mettre à jour la rotation des points de contrôle
