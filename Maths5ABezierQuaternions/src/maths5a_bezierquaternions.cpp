@@ -114,14 +114,12 @@ void Math5A_Bezier::setModeRotation()
 {
 	if (ui.rbRotObj->isChecked())
 	{
-		glScene->setModeRotation(0);
 		ui.spinX->setValue(glScene->rotObj.x());
 		ui.spinY->setValue(glScene->rotObj.y());
 		ui.spinZ->setValue(glScene->rotObj.z());
 	}
 	else if (ui.rbRotCam->isChecked())
 	{
-		glScene->setModeRotation(1);
 		ui.spinX->setValue(glScene->rotCam.x());
 		ui.spinY->setValue(glScene->rotCam.y());
 		ui.spinZ->setValue(glScene->rotCam.z());
@@ -134,7 +132,7 @@ void Math5A_Bezier::setRotation()
 	double rotX = ui.spinX->value();
 	double rotY = ui.spinY->value();
 	double rotZ = ui.spinZ->value();
-	glScene->doRotation(QVector3D(rotX, rotY, rotZ));
+	glScene->doRotation(QVector3D(rotX, rotY, rotZ), ui.rbRotObj->isChecked());
 }
 
 // Remise la rotation UI à 0

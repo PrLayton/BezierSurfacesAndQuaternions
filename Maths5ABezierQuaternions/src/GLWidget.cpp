@@ -201,8 +201,7 @@ void GLWidget::generateControlPoints()
 		break;
 	}
 	// On effectue une rotation de nos points de controle
-	doRotation(rotObj);
-	generateSurfaceBezier();
+	doRotation(rotObj, true);
 }
 
 // Vérifier si les points sont déjà générés ou pas, pour éviter les erreurs de mémoires
@@ -310,17 +309,16 @@ void GLWidget::cancelJoin()
 {
 	ptsControl.resize(degU);
 	ptsHighlighted.clear();
-	doRotation(rotObj);
-	generateSurfaceBezier();
+	doRotation(rotObj, true);
 }
 
 // Rotation du patcj
-void GLWidget::doRotation(QVector3D rot)
+void GLWidget::doRotation(QVector3D rot, bool obj)
 {
-	QVector3D rotDiff = modeRotation ? rot - rotCam : rot - rotObj;
+	QVector3D rotDiff = obj ? rot - rotObj : rot - rotCam;
 	Quaternion quat = Quaternion::fromEulerAngles(rotDiff);
 	//QQuaternion quat = QQuaternion::fromEulerAngles(rotDiff);
-	if (modeRotation)
+	if (!obj)
 	{
 		rotCam = rot;
 		posCam = quat.rotatedVector(posCam);

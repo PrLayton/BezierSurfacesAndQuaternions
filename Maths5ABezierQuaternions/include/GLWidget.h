@@ -32,8 +32,7 @@ public:
 	void resizeGL(int width, int height);
 	void paintGL();
 	void setModeGeneration(int mode) { modeGenPts = mode; generateControlPoints(); }
-	void setModeRotation(int mode) { modeRotation = mode; }
-	void doRotation(QVector3D rot);
+	void doRotation(QVector3D rot, bool obj);
 	QString labelTimer;
 	QPoint mouse;
 	QVector3D mouseWorld;
@@ -116,7 +115,7 @@ private:
 
 	// Paramètres des lumières
 	float kAmbiant = 0.3;
-	float kDiffuse = 0.2;
+	float kDiffuse = 0.4;
 	float kSpecular = 0.5;
 	//QVector3D objectColor = { 1.0,1.0,1.0 };
 	QVector3D processLighting(QVector3D p1Face, QVector3D p2Face, QVector3D p3Face, QVector3D p4Face, Light light);
