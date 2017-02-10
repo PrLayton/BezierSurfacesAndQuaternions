@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1129</width>
-    <height>742</height>
+    <height>751</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,6 +57,16 @@
         <string>Mode de génération des points</string>
        </property>
        <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="1">
+         <widget class="QRadioButton" name="rbRandom">
+          <property name="text">
+           <string>Aléatoire</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="1">
          <widget class="QRadioButton" name="rbAdjust">
           <property name="text">
@@ -84,16 +94,6 @@
          <widget class="QLabel" name="laVertical">
           <property name="text">
            <string>Degré vertical</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QRadioButton" name="rbRandom">
-          <property name="text">
-           <string>Aléatoire</string>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -137,6 +137,13 @@
           </property>
          </widget>
         </item>
+        <item row="9" column="2">
+         <widget class="QPushButton" name="bJoin">
+          <property name="text">
+           <string>Raccorder</string>
+          </property>
+         </widget>
+        </item>
         <item row="8" column="2">
          <widget class="QSpinBox" name="spinJoinOrder">
           <property name="maximum">
@@ -144,14 +151,7 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="1">
-         <widget class="QLabel" name="laPrecision">
-          <property name="text">
-           <string>Nombre de pas (précision)</string>
-          </property>
-         </widget>
-        </item>
-        <item row="11" column="1" colspan="2">
+        <item row="12" column="1" colspan="2">
          <widget class="QLabel" name="laTimeCalcSurface">
           <property name="text">
            <string>0 us</string>
@@ -168,58 +168,17 @@
           </property>
          </widget>
         </item>
-        <item row="9" column="2">
-         <widget class="QPushButton" name="bJoin">
+        <item row="6" column="1">
+         <widget class="QLabel" name="laPrecision">
           <property name="text">
-           <string>Raccorder</string>
+           <string>Nombre de pas (précision)</string>
           </property>
          </widget>
         </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="groupRotation">
-       <property name="title">
-        <string>Rotation</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QDoubleSpinBox" name="spinX">
-          <property name="decimals">
-           <number>1</number>
-          </property>
-          <property name="maximum">
-           <double>359.899999999999977</double>
-          </property>
-          <property name="singleStep">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="spinY">
-          <property name="decimals">
-           <number>1</number>
-          </property>
-          <property name="maximum">
-           <double>359.899999999999977</double>
-          </property>
-          <property name="singleStep">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="spinZ">
-          <property name="decimals">
-           <number>1</number>
-          </property>
-          <property name="maximum">
-           <double>359.899999999999977</double>
-          </property>
-          <property name="singleStep">
-           <double>1.000000000000000</double>
+        <item row="11" column="1" colspan="2">
+         <widget class="QPushButton" name="bResetData">
+          <property name="text">
+           <string>Réinitialiser les données</string>
           </property>
          </widget>
         </item>
@@ -315,6 +274,92 @@
       </widget>
      </item>
      <item>
+      <widget class="QGroupBox" name="groupRotation">
+       <property name="title">
+        <string>Rotation</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="3" column="1">
+         <widget class="QDoubleSpinBox" name="spinZ">
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <double>359.899999999999977</double>
+          </property>
+          <property name="singleStep">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QDoubleSpinBox" name="spinY">
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <double>359.899999999999977</double>
+          </property>
+          <property name="singleStep">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QDoubleSpinBox" name="spinX">
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <double>359.899999999999977</double>
+          </property>
+          <property name="singleStep">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>X</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Y</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Z</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QRadioButton" name="rbRotObj">
+          <property name="text">
+           <string>Objet</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QRadioButton" name="rbRotCam">
+          <property name="text">
+           <string>Caméra</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -326,13 +371,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="bResetData">
-       <property name="text">
-        <string>Réinitialiser les données</string>
-       </property>
-      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="bResetCam">
