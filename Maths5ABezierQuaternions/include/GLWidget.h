@@ -93,7 +93,9 @@ private:
 	// Paramètres de caméra OPENGL
 	float m_theta;	// Rotation x-axis
 	float m_phi;	// Rotation  y-axis
+	// Scale de la scène (zoom)
 	float m_scale;
+	// Pas de l'incrementation du zoom
 	float m_incrementScale;
 	double range;
 	float m_aspectRatio;
